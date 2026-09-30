@@ -1,0 +1,111 @@
+/* Sudoku Arena - Custom Board & Cell Styles */
+
+.sudoku-board {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
+  border: 3px solid #1f1f1f;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.sudoku-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: clamp(18px, 4vw, 24px);
+  border-right: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* 3x3 Block Thicker Dividers */
+.sudoku-cell:nth-child(3n) {
+  border-right: 2px solid #1f1f1f;
+}
+.sudoku-cell:nth-child(9n) {
+  border-right: none;
+}
+.sudoku-cell:nth-child(n+19):nth-child(-n+27),
+.sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+  border-bottom: 2px solid #1f1f1f;
+}
+.sudoku-cell:nth-child(n+73):nth-child(-n+81) {
+  border-bottom: none;
+}
+
+/* Cell States */
+.sudoku-cell.given {
+  color: #1f1f1f;
+  background-color: #fafaf9;
+}
+
+.sudoku-cell.user-filled {
+  color: #4f46e5; /* Indigo accent for player numbers */
+  font-weight: 800;
+}
+
+.sudoku-cell.highlight-cross {
+  background-color: #fff8e0 !important; /* Soft warm cream crosshair */
+}
+
+.sudoku-cell.highlight-same {
+  background-color: #fed7aa !important; /* Soft orange match */
+  color: #9a3412 !important;
+}
+
+.sudoku-cell.selected {
+  background-color: #ffedd5 !important; /* Warm peach selected */
+  outline: 2px solid #fa520f;
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+.sudoku-cell.conflict {
+  background-color: #ffe4e6 !important;
+  color: #e11d48 !important;
+  animation: shake 0.25s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Pencil Notes (Aday Sayılar) Grid inside empty cell */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  pointer-events: none;
+}
+
+.notes-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(8px, 1.8vw, 10px);
+  font-weight: 600;
+  color: #78716c;
+  line-height: 1;
+}
+
+/* Numpad Remaining Badge */
+.num-key-badge {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  opacity: 0.6;
+}
