@@ -14,11 +14,11 @@
   const STORAGE_LEADERBOARD = 'sudoku_leaderboard_v1';
 
   const DIFFICULTY_CONFIG = {
-    easy:   { name: 'Kolay',   clues: 38, baseScore: 500,  parTime: 360,  mult: 2, icon: '🟢' },
-    medium: { name: 'Orta',    clues: 32, baseScore: 1000, parTime: 600,  mult: 3, icon: '🟡' },
-    hard:   { name: 'Zor',     clues: 28, baseScore: 2000, parTime: 900,  mult: 4, icon: '🔴' },
-    expert: { name: 'Uzman',   clues: 24, baseScore: 3500, parTime: 1200, mult: 5, icon: '🟣' },
-    daily:  { name: 'Günün',   clues: 30, baseScore: 2500, parTime: 600,  mult: 4, icon: '📅' }
+    easy:   { name: 'Kolay',   level: 1, symbol: '●○○○', symbolColor: 'text-blue-600',   clues: 38, baseScore: 500,  parTime: 360,  mult: 2 },
+    medium: { name: 'Orta',    level: 2, symbol: '●●○○', symbolColor: 'text-indigo-400', clues: 32, baseScore: 1000, parTime: 600,  mult: 3 },
+    hard:   { name: 'Zor',     level: 3, symbol: '●●●○', symbolColor: 'text-orange-500', clues: 28, baseScore: 2000, parTime: 900,  mult: 4 },
+    expert: { name: 'Uzman',   level: 4, symbol: '●●●●', symbolColor: 'text-red-600',    clues: 24, baseScore: 3500, parTime: 1200, mult: 5 },
+    daily:  { name: 'Günün',   level: 0, symbol: '📅',   symbolColor: 'text-amber-700',  clues: 30, baseScore: 2500, parTime: 600,  mult: 4 }
   };
 
   // --- 2. GÜVENLİK PROTOKOLLERİ (XSS SANİTİZASYONU & GÜVENLİ KOPYALAMA) ---
@@ -278,9 +278,9 @@
       const btn = document.getElementById('lobby-diff-' + k);
       if (!btn) return;
       if (k === lobbySelectedDifficulty) {
-        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold transition bg-violet-600 text-white shadow-sm flex items-center gap-1 justify-center';
+        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold transition bg-stone-900 text-white border border-stone-900 shadow-sm flex items-center gap-1.5 justify-center';
       } else {
-        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center';
+        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-ink hover:bg-mistral-cream flex items-center gap-1.5 justify-center';
       }
     });
   }
@@ -917,7 +917,7 @@
 
     const cfg = DIFFICULTY_CONFIG[gameState.difficulty] || DIFFICULTY_CONFIG.medium;
     if (pBadge) pBadge.innerText = `ID: #${gameState.puzzleId}`;
-    if (dBadge) dBadge.innerText = `${cfg.icon} ${cfg.name}`;
+    if (dBadge) dBadge.innerHTML = `<span class="${cfg.symbolColor} font-mono">${cfg.symbol}</span> ${cfg.name}`;
     if (mCounter) mCounter.innerText = `❌ ${gameState.mistakes}/3`;
 
     if (bestEl) {

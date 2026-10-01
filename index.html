@@ -54,7 +54,7 @@
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
           <button onclick="resumeSavedGame()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow flex items-center gap-1.5">
-            <span>▶️</span> Önceki Oyuna Devam Et
+            <span>▶️</span> Devam Et
           </button>
           <button onclick="deleteSavedGame()" class="px-3 py-2 rounded-xl bg-white border border-amber-300 hover:bg-rose-50 text-rose-700 text-xs font-bold transition flex items-center gap-1" title="Önceki oyunu hafızadan tamamen sil">
             <span>🗑️</span> Oyunu Sil
@@ -88,23 +88,23 @@
               </p>
               
               <div class="grid grid-cols-2 gap-1.5">
-                <button onclick="selectLobbyDifficulty('easy')" id="lobby-diff-easy" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center">
-                  🟢 Kolay
+                <button onclick="selectLobbyDifficulty('easy')" id="lobby-diff-easy" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-ink hover:bg-mistral-cream flex items-center gap-1.5 justify-center">
+                  <span class="font-mono text-blue-600">●○○○</span> <span>Kolay</span>
                 </button>
-                <button onclick="selectLobbyDifficulty('medium')" id="lobby-diff-medium" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-violet-600 text-white shadow-sm flex items-center gap-1 justify-center">
-                  🟡 Orta
+                <button onclick="selectLobbyDifficulty('medium')" id="lobby-diff-medium" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-stone-900 text-white border border-stone-900 shadow-sm flex items-center gap-1.5 justify-center">
+                  <span class="font-mono text-indigo-400">●●○○</span> <span>Orta</span>
                 </button>
-                <button onclick="selectLobbyDifficulty('hard')" id="lobby-diff-hard" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center">
-                  🔴 Zor
+                <button onclick="selectLobbyDifficulty('hard')" id="lobby-diff-hard" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-ink hover:bg-mistral-cream flex items-center gap-1.5 justify-center">
+                  <span class="font-mono text-orange-500">●●●○</span> <span>Zor</span>
                 </button>
-                <button onclick="selectLobbyDifficulty('expert')" id="lobby-diff-expert" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center">
-                  🟣 Uzman
+                <button onclick="selectLobbyDifficulty('expert')" id="lobby-diff-expert" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-ink hover:bg-mistral-cream flex items-center gap-1.5 justify-center">
+                  <span class="font-mono text-red-600">●●●●</span> <span>Uzman</span>
                 </button>
               </div>
             </div>
 
             <button onclick="startFromLobbyDifficulty()" class="w-full py-2.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-white text-xs font-bold transition shadow flex items-center justify-center gap-1.5">
-              <span>▶️</span> Bu Zorlukta Başlat
+              <span>▶️</span> Başlat
             </button>
           </div>
 
@@ -126,7 +126,7 @@
             </div>
 
             <button onclick="loadFromLobbyId()" class="w-full py-2.5 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink border border-mistral-hairline text-xs font-bold transition flex items-center justify-center gap-1.5">
-              <span>🚀</span> ID ile Bulmacayı Yükle
+              <span>🚀</span> Yükle
             </button>
           </div>
 
@@ -147,7 +147,7 @@
             </div>
 
             <button onclick="startDailyChallenge()" class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow flex items-center justify-center gap-1.5">
-              <span>⭐</span> Günün Oyununa Katıl
+              <span>⭐</span> Başlat
             </button>
           </div>
 
@@ -196,6 +196,26 @@
         <!-- Sol: Sudoku Tahtası & Duraklatma Katmanı -->
         <div class="lg:col-span-7 flex flex-col items-center">
           
+          <!-- Eylemler: Geri Al, Sil, Not Modu, İpucu (Tahtanın Doğrudan Üstünde) -->
+          <div class="grid grid-cols-4 gap-2 w-full max-w-[480px] mb-3">
+            <button onclick="actionUndo()" class="py-2 px-1 sm:px-2 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm" title="Son hamleyi geri al (Ctrl+Z)">
+              <span>↩️</span>
+              <span>Geri Al</span>
+            </button>
+            <button onclick="actionErase()" class="py-2 px-1 sm:px-2 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm" title="Seçili hücreyi temizle (Delete)">
+              <span>🧹</span>
+              <span>Sil</span>
+            </button>
+            <button onclick="actionToggleNotes()" id="btn-note-mode" class="py-2 px-1 sm:px-2 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm" title="Aday sayıları not al (N tuşu)">
+              <span>✏️</span>
+              <span id="note-mode-label">Not</span>
+            </button>
+            <button onclick="actionHint()" class="py-2 px-1 sm:px-2 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm" title="Doğru sayıyı aç (-150 puan)">
+              <span>💡</span>
+              <span id="hint-btn-label">İpucu (3)</span>
+            </button>
+          </div>
+
           <div class="relative w-full max-w-[480px]">
             
             <!-- Asıl Sudoku Tahtası -->
@@ -214,7 +234,7 @@
               </p>
               <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-xs">
                 <button onclick="togglePauseGame()" class="w-full py-2.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5">
-                  <span>▶️</span> Oyuna Devam Et
+                  <span>▶️</span> Devam Et
                 </button>
                 <button onclick="pauseAndOpenNewGame()" class="w-full py-2.5 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
                   <span>🔄</span> Yeni Oyun / Menü
@@ -228,26 +248,6 @@
 
         <!-- Sağ: Numaratör, Eylemler ve Skor Kartı -->
         <div class="lg:col-span-5 w-full flex flex-col gap-4">
-
-          <!-- Eylemler: Geri Al, Sil, Not Modu, İpucu -->
-          <div class="grid grid-cols-4 gap-2">
-            <button onclick="actionUndo()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Son hamleyi geri al (Ctrl+Z)">
-              <span class="text-lg">↩️</span>
-              <span>Geri Al</span>
-            </button>
-            <button onclick="actionErase()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Seçili hücreyi temizle (Delete)">
-              <span class="text-lg">🧹</span>
-              <span>Sil</span>
-            </button>
-            <button onclick="actionToggleNotes()" id="btn-note-mode" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Aday sayıları not al (N tuşu)">
-              <span class="text-lg">✏️</span>
-              <span id="note-mode-label">Not: Kapalı</span>
-            </button>
-            <button onclick="actionHint()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Doğru sayıyı aç (-150 puan)">
-              <span class="text-lg">💡</span>
-              <span id="hint-btn-label">İpucu (3)</span>
-            </button>
-          </div>
 
           <!-- 1-9 Dokunmatik Numaratör -->
           <div class="p-4 sm:p-5 rounded-2xl bg-white border border-mistral-hairline shadow-sm">
@@ -461,6 +461,6 @@
     <p><a href="https://github.com/melihkarasu/VibeCodedApps" target="_blank" rel="noopener" class="underline hover:text-mistral-ink">VibeCodedApps</a> projesinin parçası • Açık Kaynak Standalone Sürüm • %100 Deterministik Çevrimdışı Sudoku Motoru</p>
   </footer>
 
-  <script src="js/app.js?v=20261001b"></script>
+  <script src="js/app.js?v=20261001c"></script>
 </body>
 </html>
