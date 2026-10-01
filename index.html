@@ -14,7 +14,7 @@
 
   <div class="max-w-4xl mx-auto w-full">
     
-    <!-- Üst Başlık & Eylemler -->
+    <!-- Üst Başlık & Global Eylemler -->
     <header class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-mistral-hairline pb-4">
       <div>
         <h1 class="text-3xl font-extrabold tracking-tight text-mistral-ink font-editorial flex items-center gap-2">
@@ -38,199 +38,275 @@
       </div>
     </header>
 
-    <!-- Devam Eden Oyun Bildirim Bannerı -->
-    <div id="resume-banner" class="hidden mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-      <div class="flex items-center gap-2.5">
-        <span class="text-xl">💾</span>
-        <div>
-          <div class="font-bold text-xs" id="resume-banner-text">Yarım kalmış bir oyununuz var!</div>
-          <div class="text-[11px] text-amber-700/90" id="resume-banner-sub">Kaldığınız yerden devam edebilir veya yeni oyuna başlayabilirsiniz.</div>
+    <!-- 1. GÖRÜNÜM: BAŞLANGIÇ MERKEZİ (LOBBY - Sayfa yüklendiğinde varsayılan aktif) -->
+    <section id="lobby-view" class="space-y-6">
+      
+      <!-- Yarım Kalan Oyun Bildirimi (Varsa burada gösterilir) -->
+      <div id="lobby-resume-card" class="hidden p-5 rounded-3xl bg-amber-50/90 border border-amber-200 text-amber-900 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-200/80 flex items-center justify-center text-xl shrink-0">
+            💾
+          </div>
+          <div>
+            <div class="font-bold text-sm" id="lobby-resume-title">Yarım kalan bir oyununuz var!</div>
+            <div class="text-xs text-amber-800/80 mt-0.5" id="lobby-resume-desc">Kaldığınız yerden süreniz ve hamlelerinizle devam edebilirsiniz.</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button onclick="resumeSavedGame()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow flex items-center gap-1.5">
+            <span>▶️</span> Önceki Oyuna Devam Et
+          </button>
+          <button onclick="deleteSavedGame()" class="px-3 py-2 rounded-xl bg-white border border-amber-300 hover:bg-rose-50 text-rose-700 text-xs font-bold transition flex items-center gap-1" title="Önceki oyunu hafızadan tamamen sil">
+            <span>🗑️</span> Oyunu Sil
+          </button>
         </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button onclick="resumeSavedGame()" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow">
-          Devam Et
-        </button>
-        <button onclick="dismissResumeBanner()" class="px-2.5 py-1.5 rounded-xl text-xs text-amber-700 hover:text-amber-900 font-semibold transition">
-          Yoksay
-        </button>
-      </div>
-    </div>
 
-    <!-- Kontrol Çubuğu: Zorluk Seçimi + ID Girişi -->
-    <div class="p-4 rounded-2xl bg-white border border-mistral-hairline shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      
-      <!-- Zorluk Düğmeleri -->
-      <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-xs font-bold text-mistral-slate mr-1">Zorluk:</span>
-        <button onclick="changeDifficulty('easy')" id="diff-easy" class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink">
-          🟢 Kolay
-        </button>
-        <button onclick="changeDifficulty('medium')" id="diff-medium" class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-violet-600 text-white shadow-sm">
-          🟡 Orta
-        </button>
-        <button onclick="changeDifficulty('hard')" id="diff-hard" class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink">
-          🔴 Zor
-        </button>
-        <button onclick="changeDifficulty('expert')" id="diff-expert" class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink">
-          🟣 Uzman
-        </button>
-        <button onclick="startDailyChallenge()" id="diff-daily" class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-amber-500/10 border border-amber-500/30 text-amber-700 hover:bg-amber-500/20 flex items-center gap-1" title="Tüm oyuncular için günün ortak Sudoku'su">
-          <span>📅</span> Günün Oyunu
-        </button>
-      </div>
-
-      <!-- Belirli ID ile Başlatma -->
-      <div class="flex items-center gap-2 shrink-0">
-        <div class="relative">
-          <input type="number" id="input-puzzle-id" placeholder="ID (örn: 325)" min="1" max="999999" class="w-32 px-3 py-1.5 rounded-xl bg-white border border-mistral-hairline text-xs font-mono font-bold text-mistral-ink focus:border-mistral-orange focus:outline-none">
-        </div>
-        <button onclick="loadCustomIdGame()" class="px-3 py-1.5 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-xs font-bold text-mistral-ink border border-mistral-hairline transition">
-          Yükle
-        </button>
-        <button onclick="startNewGame()" class="px-3.5 py-1.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-xs font-bold text-white transition shadow flex items-center gap-1" title="Rastgele yeni oyun">
-          <span>🔄</span> Yeni Oyun
-        </button>
-      </div>
-
-    </div>
-
-    <!-- OYUN ALANI -->
-    <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      
-      <!-- Sol / Üst: Sudoku Tahtası & Duraklatma Katmanı -->
-      <div class="lg:col-span-7 flex flex-col items-center">
+      <!-- 3 GRUP BAŞLATMA ALANI -->
+      <div class="p-6 sm:p-8 rounded-3xl bg-white border border-mistral-hairline shadow-sm space-y-6">
         
-        <!-- Oyun Durum Çubuğu -->
-        <div class="w-full max-w-[480px] mb-3 flex items-center justify-between text-xs px-1">
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-lg bg-mistral-cream border border-mistral-hairline font-mono font-bold text-[11px]" id="badge-puzzle-id">
-              ID: #325
-            </span>
-            <span class="text-mistral-slate font-medium" id="badge-difficulty-name">Orta</span>
+        <div>
+          <h2 class="text-xl font-bold font-editorial text-mistral-ink flex items-center gap-2">
+            <span>🎮</span> Yeni Bir Sudoku Başlat
+          </h2>
+          <p class="text-xs text-mistral-slate mt-1">
+            Zorluk seviyesi seçin, özel bir bulmaca ID'si girin veya günün ortak yarışmasına katılın.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          
+          <!-- GRUP 1: Zorluk Seviyesi Seçimi -->
+          <div class="p-5 rounded-2xl bg-[#fafaf9] border border-mistral-hairline flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-lg">🎯</span>
+                <h3 class="font-bold text-sm text-mistral-ink">1. Zorluk Seviyesi</h3>
+              </div>
+              <p class="text-[11px] text-mistral-slate mb-3">
+                İpucu yoğunluğuna göre seviyenizi belirleyin.
+              </p>
+              
+              <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="selectLobbyDifficulty('easy')" id="lobby-diff-easy" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center">
+                  🟢 Kolay
+                </button>
+                <button onclick="selectLobbyDifficulty('medium')" id="lobby-diff-medium" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-violet-600 text-white shadow-sm flex items-center gap-1 justify-center">
+                  🟡 Orta
+                </button>
+                <button onclick="selectLobbyDifficulty('hard')" id="lobby-diff-hard" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center">
+                  🔴 Zor
+                </button>
+                <button onclick="selectLobbyDifficulty('expert')" id="lobby-diff-expert" class="px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center">
+                  🟣 Uzman
+                </button>
+              </div>
+            </div>
+
+            <button onclick="startFromLobbyDifficulty()" class="w-full py-2.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-white text-xs font-bold transition shadow flex items-center justify-center gap-1.5">
+              <span>▶️</span> Bu Zorlukta Başlat
+            </button>
           </div>
 
-          <div class="flex items-center gap-3">
-            <!-- Kronometre & Duraklat -->
-            <div class="flex items-center gap-1.5 font-mono font-bold">
-              <span id="timer-display" class="text-sm">00:00</span>
-              <button onclick="togglePauseGame()" id="btn-pause-toggle" class="p-1 rounded-lg hover:bg-mistral-cream text-mistral-slate transition" title="Duraklat / Devam Et">
+          <!-- GRUP 2: ID Girme Kutusu ve Yükle Butonu -->
+          <div class="p-5 rounded-2xl bg-[#fafaf9] border border-mistral-hairline flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-lg">🔢</span>
+                <h3 class="font-bold text-sm text-mistral-ink">2. Bulmaca ID Gir</h3>
+              </div>
+              <p class="text-[11px] text-mistral-slate mb-3">
+                Arkadaşınızın paylaştığı veya daha önce oynadığınız herhangi bir ID numarası.
+              </p>
+              
+              <div class="space-y-2">
+                <input type="number" id="lobby-input-puzzle-id" placeholder="ID (örn: 325, 1402)" min="1" max="999999" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-mistral-hairline text-xs font-mono font-bold text-mistral-ink focus:border-mistral-orange focus:outline-none">
+                <div class="text-[10px] text-mistral-stone">Aynı ID tüm cihazlarda aynı tahtayı açar.</div>
+              </div>
+            </div>
+
+            <button onclick="loadFromLobbyId()" class="w-full py-2.5 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink border border-mistral-hairline text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span>🚀</span> ID ile Bulmacayı Yükle
+            </button>
+          </div>
+
+          <!-- GRUP 3: Günün Sudokusu Butonu -->
+          <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-lg">📅</span>
+                <h3 class="font-bold text-sm text-amber-900">3. Günün Sudokusu</h3>
+              </div>
+              <p class="text-[11px] text-amber-800/80 mb-3">
+                Günün tarihine özel ortak bulmaca! Tüm oyuncularla aynı tahtada süre yarışına katılın.
+              </p>
+              <div class="p-2.5 rounded-xl bg-white/80 border border-amber-200 text-[11px] font-mono font-bold text-amber-900 flex items-center justify-between" id="lobby-daily-date-label">
+                <span>Tarih Kodu:</span>
+                <span id="lobby-daily-code">20261001</span>
+              </div>
+            </div>
+
+            <button onclick="startDailyChallenge()" class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow flex items-center justify-center gap-1.5">
+              <span>⭐</span> Günün Oyununa Katıl
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- 2. GÖRÜNÜM: OYUN ALANI (Başlangıçta gizli, oyun başlayınca açılır) -->
+    <section id="game-view" class="hidden space-y-6">
+      
+      <!-- Oyun İçi Kontrol ve Durum Başlığı -->
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-white border border-mistral-hairline shadow-sm flex items-center justify-between gap-3 text-xs">
+        
+        <div class="flex items-center gap-2.5">
+          <button onclick="returnToLobby()" class="px-2.5 py-1.5 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-bold transition flex items-center gap-1 text-[11px]" title="Oyunu kaydedip ana menüye dön">
+            <span>🏠</span> Menü
+          </button>
+          <span class="px-2.5 py-1 rounded-lg bg-mistral-cream border border-mistral-hairline font-mono font-bold text-[11px]" id="badge-puzzle-id">
+            ID: #325
+          </span>
+          <span class="text-mistral-slate font-medium hidden sm:inline" id="badge-difficulty-name">Orta</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Kronometre & Duraklat Butonu -->
+          <div class="flex items-center gap-1.5 font-mono font-bold bg-mistral-cream px-2.5 py-1 rounded-xl border border-mistral-hairline">
+            <span id="timer-display" class="text-sm">00:00</span>
+            <button onclick="togglePauseGame()" id="btn-pause-toggle" class="p-0.5 rounded hover:opacity-80 text-mistral-slate transition text-sm" title="Duraklat / Devam Et">
+              ⏸️
+            </button>
+          </div>
+
+          <!-- Hata & İpucu Sayacı -->
+          <div class="flex items-center gap-2 font-mono text-[11px]">
+            <span id="mistakes-counter" class="text-mistral-slate font-bold">❌ 0/3</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OYUN GRIDİ VE SAĞ PANEL -->
+      <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Sol: Sudoku Tahtası & Duraklatma Katmanı -->
+        <div class="lg:col-span-7 flex flex-col items-center">
+          
+          <div class="relative w-full max-w-[480px]">
+            
+            <!-- Asıl Sudoku Tahtası -->
+            <div id="sudoku-board" class="sudoku-board shadow-xl">
+              <!-- 81 hücre JS ile üretilir -->
+            </div>
+
+            <!-- Duraklatma / Blur Katmanı (Anti-Cheat) -->
+            <div id="pause-overlay" class="hidden absolute inset-0 z-20 backdrop-blur-md bg-white/85 rounded-xl flex flex-col items-center justify-center p-6 text-center shadow-lg transition-all">
+              <div class="w-14 h-14 rounded-full bg-mistral-cream border border-mistral-hairline flex items-center justify-center text-2xl mb-3 shadow-inner">
                 ⏸️
+              </div>
+              <h3 class="text-lg font-bold font-editorial text-mistral-ink mb-1">Oyun Duraklatıldı</h3>
+              <p class="text-xs text-mistral-slate max-w-xs mb-6">
+                Tahtadaki sayılar gizlendi. Devam edebilir veya oyunu kaydedip yeni oyun menüsüne dönebilirsiniz.
+              </p>
+              <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-xs">
+                <button onclick="togglePauseGame()" class="w-full py-2.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-1.5">
+                  <span>▶️</span> Oyuna Devam Et
+                </button>
+                <button onclick="pauseAndOpenNewGame()" class="w-full py-2.5 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                  <span>🔄</span> Yeni Oyun / Menü
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Sağ: Numaratör, Eylemler ve Skor Kartı -->
+        <div class="lg:col-span-5 w-full flex flex-col gap-4">
+
+          <!-- Eylemler: Geri Al, Sil, Not Modu, İpucu -->
+          <div class="grid grid-cols-4 gap-2">
+            <button onclick="actionUndo()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Son hamleyi geri al (Ctrl+Z)">
+              <span class="text-lg">↩️</span>
+              <span>Geri Al</span>
+            </button>
+            <button onclick="actionErase()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Seçili hücreyi temizle (Delete)">
+              <span class="text-lg">🧹</span>
+              <span>Sil</span>
+            </button>
+            <button onclick="actionToggleNotes()" id="btn-note-mode" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Aday sayıları not al (N tuşu)">
+              <span class="text-lg">✏️</span>
+              <span id="note-mode-label">Not: Kapalı</span>
+            </button>
+            <button onclick="actionHint()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Doğru sayıyı aç (-150 puan)">
+              <span class="text-lg">💡</span>
+              <span id="hint-btn-label">İpucu (3)</span>
+            </button>
+          </div>
+
+          <!-- 1-9 Dokunmatik Numaratör -->
+          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-mistral-hairline shadow-sm">
+            <div class="text-[11px] font-bold text-mistral-slate uppercase tracking-wider mb-2.5 flex items-center justify-between">
+              <span>Rakamlar (1 - 9)</span>
+              <span class="text-[10px] font-normal text-mistral-stone">Klavye veya dokunma</span>
+            </div>
+
+            <div class="grid grid-cols-3 sm:grid-cols-9 lg:grid-cols-3 gap-2">
+              <button onclick="inputNumber(1)" id="numpad-1" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>1</span><span class="num-key-badge" id="remain-1">9</span>
+              </button>
+              <button onclick="inputNumber(2)" id="numpad-2" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>2</span><span class="num-key-badge" id="remain-2">9</span>
+              </button>
+              <button onclick="inputNumber(3)" id="numpad-3" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>3</span><span class="num-key-badge" id="remain-3">9</span>
+              </button>
+              <button onclick="inputNumber(4)" id="numpad-4" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>4</span><span class="num-key-badge" id="remain-4">9</span>
+              </button>
+              <button onclick="inputNumber(5)" id="numpad-5" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>5</span><span class="num-key-badge" id="remain-5">9</span>
+              </button>
+              <button onclick="inputNumber(6)" id="numpad-6" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>6</span><span class="num-key-badge" id="remain-6">9</span>
+              </button>
+              <button onclick="inputNumber(7)" id="numpad-7" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>7</span><span class="num-key-badge" id="remain-7">9</span>
+              </button>
+              <button onclick="inputNumber(8)" id="numpad-8" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>8</span><span class="num-key-badge" id="remain-8">9</span>
+              </button>
+              <button onclick="inputNumber(9)" id="numpad-9" class="h-11 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
+                <span>9</span><span class="num-key-badge" id="remain-9">9</span>
               </button>
             </div>
+          </div>
 
-            <!-- Hata & İpucu -->
-            <div class="flex items-center gap-2 text-mistral-slate font-medium font-mono text-[11px]">
-              <span id="mistakes-counter" title="Hatalı Hamle Sayacı">❌ 0/3</span>
+          <!-- Canlı Puan & İlerleme -->
+          <div class="p-4 rounded-2xl bg-white border border-mistral-hairline shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-mistral-slate font-medium">Hesaplanan Puan:</span>
+              <span class="text-lg font-black font-mono text-mistral-orange" id="live-score-display">0 Puan</span>
+            </div>
+            <div class="w-full bg-mistral-cream h-2 rounded-full overflow-hidden">
+              <div id="progress-bar-fill" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-mistral-slate font-mono">
+              <span id="cells-filled-label">Tamamlanan: 0 / 81</span>
+              <span id="best-score-label">Bu ID Rekoru: -</span>
             </div>
           </div>
-        </div>
-
-        <!-- TAHTA VE BLUR KATMANI -->
-        <div class="relative w-full max-w-[480px]">
-          
-          <!-- Asıl Sudoku Tahtası -->
-          <div id="sudoku-board" class="sudoku-board shadow-xl">
-            <!-- 81 hücre JS ile üretilir -->
-          </div>
-
-          <!-- Duraklatma / Blur Katmanı (Anti-Cheat) -->
-          <div id="pause-overlay" class="hidden absolute inset-0 z-20 backdrop-blur-md bg-white/80 rounded-xl flex flex-col items-center justify-center p-6 text-center shadow-lg transition-all">
-            <div class="w-16 h-16 rounded-full bg-mistral-cream border border-mistral-hairline flex items-center justify-center text-3xl mb-3 shadow-inner">
-              ⏸️
-            </div>
-            <h3 class="text-lg font-bold font-editorial text-mistral-ink mb-1">Oyun Duraklatıldı</h3>
-            <p class="text-xs text-mistral-slate max-w-xs mb-5">
-              Tahtadaki sayılar gizlendi. Süreyi ve hamleleri sürdürmek için devam edin.
-            </p>
-            <button onclick="togglePauseGame()" class="px-6 py-2.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-white font-bold text-xs transition shadow-md flex items-center gap-2">
-              <span>▶️</span> Oyuna Devam Et
-            </button>
-          </div>
 
         </div>
 
-      </div>
+      </main>
 
-      <!-- Sağ / Alt: Kontrol Araçları, Sayı Klavyesi & İstatistik Kartı -->
-      <div class="lg:col-span-5 w-full flex flex-col gap-5">
-
-        <!-- Eylem Araç Çubuğu (Geri Al, Sil, Not Modu, İpucu) -->
-        <div class="grid grid-cols-4 gap-2">
-          <button onclick="actionUndo()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Son hamleyi geri al (Ctrl+Z)">
-            <span class="text-lg">↩️</span>
-            <span>Geri Al</span>
-          </button>
-          <button onclick="actionErase()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Seçili hücreyi temizle (Delete)">
-            <span class="text-lg">🧹</span>
-            <span>Sil</span>
-          </button>
-          <button onclick="actionToggleNotes()" id="btn-note-mode" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Aday sayıları not al (N tuşu)">
-            <span class="text-lg">✏️</span>
-            <span id="note-mode-label">Not: Kapalı</span>
-          </button>
-          <button onclick="actionHint()" class="p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm" title="Doğru sayıyı aç (-150 puan)">
-            <span class="text-lg">💡</span>
-            <span id="hint-btn-label">İpucu (3)</span>
-          </button>
-        </div>
-
-        <!-- 1-9 Dokunmatik / Ekran Numaratörü -->
-        <div class="p-5 rounded-2xl bg-white border border-mistral-hairline shadow-sm">
-          <div class="text-[11px] font-bold text-mistral-slate uppercase tracking-wider mb-3 flex items-center justify-between">
-            <span>Sayı Seçimi (1 - 9)</span>
-            <span class="text-[10px] font-normal text-mistral-stone">Klavye veya dokunma</span>
-          </div>
-
-          <div class="grid grid-cols-3 sm:grid-cols-9 lg:grid-cols-3 gap-2">
-            <button onclick="inputNumber(1)" id="numpad-1" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>1</span><span class="num-key-badge" id="remain-1">9</span>
-            </button>
-            <button onclick="inputNumber(2)" id="numpad-2" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>2</span><span class="num-key-badge" id="remain-2">9</span>
-            </button>
-            <button onclick="inputNumber(3)" id="numpad-3" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>3</span><span class="num-key-badge" id="remain-3">9</span>
-            </button>
-            <button onclick="inputNumber(4)" id="numpad-4" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>4</span><span class="num-key-badge" id="remain-4">9</span>
-            </button>
-            <button onclick="inputNumber(5)" id="numpad-5" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>5</span><span class="num-key-badge" id="remain-5">9</span>
-            </button>
-            <button onclick="inputNumber(6)" id="numpad-6" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>6</span><span class="num-key-badge" id="remain-6">9</span>
-            </button>
-            <button onclick="inputNumber(7)" id="numpad-7" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>7</span><span class="num-key-badge" id="remain-7">9</span>
-            </button>
-            <button onclick="inputNumber(8)" id="numpad-8" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>8</span><span class="num-key-badge" id="remain-8">9</span>
-            </button>
-            <button onclick="inputNumber(9)" id="numpad-9" class="h-12 rounded-xl bg-mistral-cream hover:bg-mistral-cream-deeper text-mistral-ink font-mono font-bold text-lg transition flex flex-col items-center justify-center shadow-sm">
-              <span>9</span><span class="num-key-badge" id="remain-9">9</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Anlık Puan & Oyun Bilgi Kartı -->
-        <div class="p-4 rounded-2xl bg-white border border-mistral-hairline shadow-sm space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-mistral-slate font-medium">Hesaplanan Puan:</span>
-            <span class="text-lg font-black font-mono text-mistral-orange" id="live-score-display">0 Puan</span>
-          </div>
-          <div class="w-full bg-mistral-cream h-2 rounded-full overflow-hidden">
-            <div id="progress-bar-fill" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-mistral-slate font-mono">
-            <span id="cells-filled-label">Tamamlanan: 0 / 81</span>
-            <span id="best-score-label">Bu ID Rekoru: -</span>
-          </div>
-        </div>
-
-      </div>
-
-    </main>
+    </section>
 
   </div>
 
@@ -269,7 +345,7 @@
 
       <div class="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
         <button onclick="shareGameLink()" class="w-full py-2.5 rounded-xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-xs font-bold transition flex items-center justify-center gap-1.5">
-          <span>🔗</span> Skoru & Linki Paylaş
+          <span>🔗</span> Skoru Paylaş
         </button>
         <button onclick="startNextGame()" class="w-full py-2.5 rounded-xl bg-[#fa520f] hover:bg-[#cc3a05] text-white text-xs font-bold transition shadow flex items-center justify-center gap-1.5">
           <span>➡️</span> Sıradaki Bulmaca
@@ -322,7 +398,7 @@
     </div>
   </div>
 
-  <!-- MODAL: İSTATİSTİKLER (BU OYUN VS GENEL TOPLAM) -->
+  <!-- MODAL: İSTATİSTİKLER -->
   <div id="stats-modal" class="hidden fixed inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center p-4">
     <div class="max-w-lg w-full rounded-3xl bg-white border border-mistral-hairline shadow-2xl p-6 flex flex-col max-h-[85vh]">
       
@@ -361,7 +437,7 @@
           </div>
         </div>
 
-        <!-- Tekil Bulmaca Kayıtları (ID Bazlı En İyiler) -->
+        <!-- Tekil Bulmaca Kayıtları -->
         <div>
           <div class="text-[11px] font-bold text-mistral-slate uppercase tracking-wider mb-2 flex items-center justify-between">
             <span>Çözülen Bulmaca Rekorları</span>
@@ -385,6 +461,6 @@
     <p><a href="https://github.com/melihkarasu/VibeCodedApps" target="_blank" rel="noopener" class="underline hover:text-mistral-ink">VibeCodedApps</a> projesinin parçası • Açık Kaynak Standalone Sürüm • %100 Deterministik Çevrimdışı Sudoku Motoru</p>
   </footer>
 
-  <script src="js/app.js?v=20261001a"></script>
+  <script src="js/app.js?v=20261001b"></script>
 </body>
 </html>

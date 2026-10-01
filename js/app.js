@@ -21,7 +21,44 @@
     daily:  { name: 'Günün',   clues: 30, baseScore: 2500, parTime: 600,  mult: 4, icon: '📅' }
   };
 
-  // --- 2. DETERMINISTIK PRNG (MULBERRY32) ---
+  // --- 2. GÜVENLİK PROTOKOLLERİ (XSS SANİTİZASYONU & GÜVENLİ KOPYALAMA) ---
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function safeCopyToClipboard(text, successMsg) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(successMsg || 'Panoya kopyalandı!');
+      }).catch(() => fallbackCopy(text, successMsg));
+    } else {
+      fallbackCopy(text, successMsg);
+    }
+  }
+
+  function fallbackCopy(text, successMsg) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showToast(successMsg || 'Panoya kopyalandı!');
+    } catch(e) {
+      showToast('Kopyalama başarısız oldu');
+    }
+    document.body.removeChild(ta);
+  }
+
+  // --- 3. DETERMINISTIK PRNG (MULBERRY32) ---
   function mulberry32(seed) {
     let s = Math.floor(Math.abs(Number(seed) || 12345));
     if (s === 0) s = 12345;
@@ -33,7 +70,7 @@
     };
   }
 
-  // --- 3. SUDOKU ÇÖZÜCÜ VE TEKİL ÇÖZÜM DENETLEYİCİ ---
+  // --- 4. SUDOKU ÇÖZÜCÜ VE TEKİL ÇÖZÜM DENETLEYİCİ ---
   function solveCount(grid, limit) {
     let count = 0;
     function solve() {
@@ -63,7 +100,7 @@
     return count;
   }
 
-  // --- 4. DETERMINISTIK BULMACA ÜRETİCİ ---
+  // --- 5. DETERMINISTIK BULMACA ÜRETİCİ ---
   function generateSudoku(seed, cluesTarget) {
     const rand = mulberry32(seed);
     const grid = new Array(81).fill(0);
@@ -143,7 +180,7 @@
     return { puzzle, solution, clues: remaining };
   }
 
-  // --- 5. OYUN DURUMU DEĞİŞKENLERİ ---
+  // --- 6. OYUN DURUMU DEĞİŞKENLERİ ---
   let gameState = {
     puzzleId: 325,
     difficulty: 'medium',
@@ -160,10 +197,14 @@
     mistakes: 0,
     hintsRemaining: 3,
     hintsUsed: 0,
-    history: []
+    history: [],
+    hasPlayerMoved: false,
+    inGame: false // Sayfa açılışında oyun başlamaz; lobi aktiftir
   };
 
-  // --- 6. GİZLİLİK MASKELEME KURALI (m*****u) ---
+  let lobbySelectedDifficulty = 'medium';
+
+  // --- 7. GİZLİLİK MASKELEME KURALI (m*****u) ---
   // Kural: İlk karakter + tam 5 adet yıldız + son karakter (küçük harf)
   function maskUsername(raw) {
     const s = String(raw || 'misafir').trim().toLowerCase();
@@ -173,14 +214,13 @@
     return `${first}*****${last}`;
   }
 
-  // --- 7. BAŞLANGIÇ & YENİ OYUN YÖNETİMİ ---
+  // --- 8. BAŞLANGIÇ & LOBİ YÖNETİMİ ---
   function initGame() {
     setupDomEvents();
-    checkUrlParams();
-    checkUnfinishedGame();
-  }
+    updateLobbyDailyDate();
+    updateLobbyDifficultyUI();
 
-  function checkUrlParams() {
+    // URL'de doğrudan paylaşım parametresi var mı kontrol et
     const urlParams = new URLSearchParams(window.location.search);
     const idParam = urlParams.get('id') || urlParams.get('puzzle');
     const diffParam = urlParams.get('diff') || urlParams.get('difficulty');
@@ -193,15 +233,72 @@
       }
     }
 
-    if (diffParam && DIFFICULTY_CONFIG[diffParam]) {
-      gameState.difficulty = diffParam;
-    }
-    startNewGame();
+    // Sayfa doğrudan lobi görünümüyle açılır (Oyun HEMEN başlamaz)
+    showLobbyView();
   }
 
-  function startNewGame() {
+  function updateLobbyDailyDate() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const codeEl = document.getElementById('lobby-daily-code');
+    if (codeEl) codeEl.innerText = `${yyyy}${mm}${dd}`;
+  }
+
+  function showLobbyView() {
+    stopTimer();
+    gameState.inGame = false;
+
+    const lobbyView = document.getElementById('lobby-view');
+    const gameView = document.getElementById('game-view');
+    if (lobbyView) lobbyView.classList.remove('hidden');
+    if (gameView) gameView.classList.add('hidden');
+
+    hidePauseOverlay();
+    checkLobbyUnfinishedGame();
+  }
+
+  function showGameView() {
+    gameState.inGame = true;
+    const lobbyView = document.getElementById('lobby-view');
+    const gameView = document.getElementById('game-view');
+    if (lobbyView) lobbyView.classList.add('hidden');
+    if (gameView) gameView.classList.remove('hidden');
+  }
+
+  function selectLobbyDifficulty(diffKey) {
+    if (!DIFFICULTY_CONFIG[diffKey]) return;
+    lobbySelectedDifficulty = diffKey;
+    updateLobbyDifficultyUI();
+  }
+
+  function updateLobbyDifficultyUI() {
+    ['easy', 'medium', 'hard', 'expert'].forEach(k => {
+      const btn = document.getElementById('lobby-diff-' + k);
+      if (!btn) return;
+      if (k === lobbySelectedDifficulty) {
+        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold transition bg-violet-600 text-white shadow-sm flex items-center gap-1 justify-center';
+      } else {
+        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1 justify-center';
+      }
+    });
+  }
+
+  function startFromLobbyDifficulty() {
     const randId = Math.floor(Math.random() * 90000) + 1000;
-    startNewGameWithId(randId, gameState.difficulty);
+    startNewGameWithId(randId, lobbySelectedDifficulty);
+  }
+
+  function loadFromLobbyId() {
+    const input = document.getElementById('lobby-input-puzzle-id');
+    const val = parseInt(input ? input.value : '', 10);
+    if (isNaN(val) || val <= 0) {
+      showToast('Lütfen geçerli bir bulmaca ID girin (örn: 325)');
+      return;
+    }
+    startNewGameWithId(val, lobbySelectedDifficulty);
+    if (input) input.value = '';
   }
 
   function startDailyChallenge() {
@@ -213,42 +310,31 @@
     startNewGameWithId(dailyId, 'daily');
   }
 
-  function loadCustomIdGame() {
-    const input = document.getElementById('input-puzzle-id');
-    const val = parseInt(input ? input.value : '', 10);
-    if (isNaN(val) || val <= 0) {
-      showToast('Lütfen geçerli bir bulmaca ID girin (örn: 325)');
-      return;
-    }
-    startNewGameWithId(val, gameState.difficulty === 'daily' ? 'medium' : gameState.difficulty);
-    if (input) input.value = '';
-  }
-
   function startNextGame() {
     closeVictoryModal();
     const nextId = gameState.puzzleId + 1;
     startNewGameWithId(nextId, gameState.difficulty);
   }
 
-  function changeDifficulty(diffKey) {
-    if (!DIFFICULTY_CONFIG[diffKey]) return;
-    gameState.difficulty = diffKey;
-    updateDifficultyUI();
-    startNewGame();
+  function returnToLobby() {
+    // Oyunu kaydedip ana menüye döner
+    if (gameState.hasPlayerMoved || gameState.timerSec > 5) {
+      saveActiveGame();
+    }
+    showLobbyView();
+    showToast('💾 Oyun kaydedildi, ana menüye dönüldü.');
   }
 
-  function updateDifficultyUI() {
-    ['easy', 'medium', 'hard', 'expert', 'daily'].forEach(k => {
-      const btn = document.getElementById('diff-' + k);
-      if (!btn) return;
-      if (k === gameState.difficulty) {
-        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition bg-violet-600 text-white shadow-sm flex items-center gap-1';
-      } else {
-        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink flex items-center gap-1';
-      }
-    });
+  function pauseAndOpenNewGame() {
+    // Duraklatma ekranından yeni oyun / menüye basılınca
+    if (gameState.hasPlayerMoved || gameState.timerSec > 5) {
+      saveActiveGame();
+    }
+    showLobbyView();
+    showToast('💾 Yarım kalan oyun kaydedildi.');
   }
 
+  // --- 9. OYUN BAŞLATMA (MOTOR ÇAĞRISI) ---
   function startNewGameWithId(id, difficulty) {
     stopTimer();
     const diff = DIFFICULTY_CONFIG[difficulty] ? difficulty : 'medium';
@@ -263,8 +349,9 @@
     gameState.hintsRemaining = 3;
     gameState.hintsUsed = 0;
     gameState.history = [];
+    gameState.hasPlayerMoved = false;
 
-    showToast(`🧩 Bulmaca #${id} hazırlanıyor...`);
+    showToast(`🧩 Bulmaca #${id} yükleniyor...`);
 
     const cfg = DIFFICULTY_CONFIG[diff];
     const generated = generateSudoku(id, cfg.clues);
@@ -274,22 +361,28 @@
     gameState.given = generated.puzzle.map(v => v !== 0);
     gameState.notes = Array.from({length: 81}, () => []);
 
-    updateDifficultyUI();
     updateBadges();
     renderBoard();
     updateLiveScore();
     updateNumpadBadges();
     hidePauseOverlay();
+
+    showGameView();
     startTimer();
-    saveActiveGame();
+    // NOT: Yeni başlayan oyunda oyuncu henüz hamle yapmadığı için saveActiveGame() ÇAĞRILMAZ!
+    // Böylece sayfa yenilenirse boş oyun "yarım kalan oyun" olarak görünmez.
   }
 
-  // --- 8. YARIM KALAN OYUNU SAKLAMA VE DEVAM ETME ---
+  // --- 10. YARIM KALAN OYUN YÖNETİMİ (TEKİL VE SON OYUN) ---
   function saveActiveGame() {
     if (gameState.isCompleted) {
       localStorage.removeItem(STORAGE_ACTIVE_GAME);
       return;
     }
+
+    // Yalnızca oyuncu en az bir hamle yaptıysa veya süre harcadıysa kaydet
+    if (!gameState.hasPlayerMoved && gameState.timerSec < 5) return;
+
     const payload = {
       puzzleId: gameState.puzzleId,
       difficulty: gameState.difficulty,
@@ -308,29 +401,43 @@
     } catch(e) {}
   }
 
-  function checkUnfinishedGame() {
+  function checkLobbyUnfinishedGame() {
+    const card = document.getElementById('lobby-resume-card');
+    const titleEl = document.getElementById('lobby-resume-title');
+    const descEl = document.getElementById('lobby-resume-desc');
+    if (!card) return;
+
     try {
       const raw = localStorage.getItem(STORAGE_ACTIVE_GAME);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (!data || !data.board || data.board.length !== 81) return;
-
-      const filled = data.board.filter(v => v !== 0).length;
-      if (filled >= 81 || filled === 0) return;
-
-      // Banner'ı göster
-      const banner = document.getElementById('resume-banner');
-      const text = document.getElementById('resume-banner-text');
-      const sub = document.getElementById('resume-banner-sub');
-      if (banner && text && sub) {
-        const mm = String(Math.floor(data.timerSec / 60)).padStart(2, '0');
-        const ss = String(data.timerSec % 60).padStart(2, '0');
-        const diffName = (DIFFICULTY_CONFIG[data.difficulty] || {}).name || data.difficulty;
-        text.innerText = `Yarım kalan oyununuz var: #${data.puzzleId} (${diffName})`;
-        sub.innerText = `Süre: ${mm}:${ss} • İlerleme: %${Math.round((filled / 81) * 100)}`;
-        banner.classList.remove('hidden');
+      if (!raw) {
+        card.classList.add('hidden');
+        return;
       }
-    } catch(e) {}
+      const data = JSON.parse(raw);
+      if (!data || !data.board || data.board.length !== 81) {
+        card.classList.add('hidden');
+        return;
+      }
+
+      // Oyuncunun en az bir hamlesi var mı?
+      const userMoves = data.board.filter((v, i) => !data.given[i] && v !== 0).length;
+      const totalEmpty = data.given.filter(g => !g).length;
+      if (userMoves === 0 && (data.timerSec || 0) < 5) {
+        card.classList.add('hidden');
+        return;
+      }
+
+      const mm = String(Math.floor((data.timerSec || 0) / 60)).padStart(2, '0');
+      const ss = String((data.timerSec || 0) % 60).padStart(2, '0');
+      const diffName = (DIFFICULTY_CONFIG[data.difficulty] || {}).name || data.difficulty;
+      const pct = Math.round((userMoves / Math.max(1, totalEmpty)) * 100);
+
+      if (titleEl) titleEl.innerText = `Yarım Kalan Oyununuz: #${data.puzzleId} (${diffName})`;
+      if (descEl) descEl.innerText = `Geçen Süre: ${mm}:${ss} • İlerleme: %${pct} (${userMoves}/${totalEmpty} hücre tamamlandı)`;
+      card.classList.remove('hidden');
+    } catch(e) {
+      card.classList.add('hidden');
+    }
   }
 
   function resumeSavedGame() {
@@ -338,7 +445,6 @@
       const raw = localStorage.getItem(STORAGE_ACTIVE_GAME);
       if (!raw) return;
       const data = JSON.parse(raw);
-      dismissResumeBanner();
 
       stopTimer();
       gameState.puzzleId = data.puzzleId;
@@ -356,13 +462,15 @@
       gameState.isPaused = false;
       gameState.isCompleted = false;
       gameState.history = [];
+      gameState.hasPlayerMoved = true;
 
-      updateDifficultyUI();
       updateBadges();
       renderBoard();
       updateLiveScore();
       updateNumpadBadges();
       hidePauseOverlay();
+
+      showGameView();
       startTimer();
       showToast('✓ Oyun kaldığı yerden yüklendi!');
     } catch(e) {
@@ -370,20 +478,26 @@
     }
   }
 
-  function dismissResumeBanner() {
-    const banner = document.getElementById('resume-banner');
-    if (banner) banner.classList.add('hidden');
+  function deleteSavedGame() {
+    try {
+      localStorage.removeItem(STORAGE_ACTIVE_GAME);
+    } catch(e) {}
+    const card = document.getElementById('lobby-resume-card');
+    if (card) card.classList.add('hidden');
+    showToast('✓ Önceki oyun kaydı silindi.');
   }
 
-  // --- 9. KRONOMETRE & DURAKLATMA (BLUR KATMANI) ---
+  // --- 11. KRONOMETRE & DURAKLATMA (BLUR KATMANI) ---
   function startTimer() {
     stopTimer();
     gameState.timerInterval = setInterval(() => {
-      if (!gameState.isPaused && !gameState.isCompleted) {
+      if (!gameState.isPaused && !gameState.isCompleted && gameState.inGame) {
         gameState.timerSec++;
         updateTimerDisplay();
         updateLiveScore();
-        if (gameState.timerSec % 5 === 0) saveActiveGame();
+        if (gameState.timerSec % 5 === 0 && gameState.hasPlayerMoved) {
+          saveActiveGame();
+        }
       }
     }, 1000);
     updateTimerDisplay();
@@ -405,7 +519,7 @@
   }
 
   function togglePauseGame() {
-    if (gameState.isCompleted) return;
+    if (gameState.isCompleted || !gameState.inGame) return;
     gameState.isPaused = !gameState.isPaused;
     const overlay = document.getElementById('pause-overlay');
     const btn = document.getElementById('btn-pause-toggle');
@@ -426,7 +540,7 @@
     gameState.isPaused = false;
   }
 
-  // --- 10. TAHTA VE HÜCRE ÇİZİMİ ---
+  // --- 12. TAHTA VE HÜCRE ÇİZİMİ ---
   function renderBoard() {
     const container = document.getElementById('sudoku-board');
     if (!container) return;
@@ -529,7 +643,7 @@
     renderBoard();
   }
 
-  // --- 11. SAYI GİRİŞİ & NOT MODU YÖNETİMİ ---
+  // --- 13. SAYI GİRİŞİ & NOT MODU YÖNETİMİ ---
   function inputNumber(num) {
     if (gameState.isPaused || gameState.isCompleted) return;
     if (gameState.selectedCell < 0) {
@@ -538,10 +652,9 @@
     }
 
     const idx = gameState.selectedCell;
-    if (gameState.given[idx]) {
-      // Verilen sabit hücre değiştirilemez
-      return;
-    }
+    if (gameState.given[idx]) return;
+
+    gameState.hasPlayerMoved = true;
 
     // Aday Not Modu Açık ise
     if (gameState.noteMode) {
@@ -561,7 +674,7 @@
         newNotes: cellNotes
       });
       gameState.notes[idx] = cellNotes;
-      gameState.board[idx] = 0; // Not girildiğinde asıl sayı kalkar
+      gameState.board[idx] = 0;
       renderBoard();
       saveActiveGame();
       return;
@@ -572,7 +685,6 @@
     const prevNotes = (gameState.notes[idx] || []).slice();
 
     if (prevVal === num) {
-      // Aynı sayıya tekrar basılırsa temizle
       actionErase();
       return;
     }
@@ -596,7 +708,7 @@
     });
 
     gameState.board[idx] = num;
-    gameState.notes[idx] = []; // Sayı konunca o hücredeki notlar silinir
+    gameState.notes[idx] = [];
 
     // Akıllı Not Temizliği: Aynı satır, sütun ve kutudaki diğer hücrelerden bu sayıyı sil
     cleanRelatedNotes(idx, num);
@@ -629,7 +741,7 @@
     }
   }
 
-  // --- 12. EYLEMLER: GERİ AL, SİL, NOT MODU, İPUCU ---
+  // --- 14. EYLEMLER: GERİ AL, SİL, NOT MODU, İPUCU ---
   function actionUndo() {
     if (gameState.isPaused || gameState.isCompleted) return;
     if (gameState.history.length === 0) {
@@ -654,6 +766,7 @@
 
     if (gameState.board[idx] === 0 && (!gameState.notes[idx] || gameState.notes[idx].length === 0)) return;
 
+    gameState.hasPlayerMoved = true;
     gameState.history.push({
       idx,
       prevVal: gameState.board[idx],
@@ -692,7 +805,6 @@
       return;
     }
 
-    // Seçili hücre boş ve kurallı değilse onu aç; yoksa ilk boş hücreyi bul
     let target = gameState.selectedCell;
     if (target < 0 || gameState.given[target] || gameState.board[target] === gameState.solution[target]) {
       target = -1;
@@ -709,6 +821,7 @@
       return;
     }
 
+    gameState.hasPlayerMoved = true;
     gameState.hintsRemaining--;
     gameState.hintsUsed++;
     const correctVal = gameState.solution[target];
@@ -735,7 +848,7 @@
     checkVictory();
   }
 
-  // --- 13. PUANLAMA MOTORU (TRIVIA BENZERİ FORMÜL) ---
+  // --- 15. PUANLAMA MOTORU (TRIVIA FORMÜLÜ) ---
   function calculateCurrentScore() {
     const cfg = DIFFICULTY_CONFIG[gameState.difficulty] || DIFFICULTY_CONFIG.medium;
     const base = cfg.baseScore;
@@ -800,16 +913,13 @@
     const pBadge = document.getElementById('badge-puzzle-id');
     const dBadge = document.getElementById('badge-difficulty-name');
     const mCounter = document.getElementById('mistakes-counter');
-    const hLabel = document.getElementById('hint-btn-label');
     const bestEl = document.getElementById('best-score-label');
 
     const cfg = DIFFICULTY_CONFIG[gameState.difficulty] || DIFFICULTY_CONFIG.medium;
     if (pBadge) pBadge.innerText = `ID: #${gameState.puzzleId}`;
     if (dBadge) dBadge.innerText = `${cfg.icon} ${cfg.name}`;
     if (mCounter) mCounter.innerText = `❌ ${gameState.mistakes}/3`;
-    if (hLabel) hLabel.innerText = `İpucu (${gameState.hintsRemaining})`;
 
-    // ID bazlı rekoru göster
     if (bestEl) {
       const records = getIdRecords();
       const rec = records[gameState.puzzleId];
@@ -821,7 +931,7 @@
     }
   }
 
-  // --- 14. ZAFER KONTROLÜ & REKOR KAYDI ---
+  // --- 16. ZAFER KONTROLÜ & REKOR SAKLAMA ---
   function checkVictory() {
     for (let i = 0; i < 81; i++) {
       if (gameState.board[i] === 0 || gameState.board[i] !== gameState.solution[i]) {
@@ -846,7 +956,7 @@
     const finalScore = scoreData.total;
     const now = Date.now();
 
-    // 1) Bulmaca Bazında Tekil Rekor (Aynı ID oynanırsa en yüksek puanlısı saklanır)
+    // 1) Bulmaca Bazında Tekil Rekor (Aynı ID oynanırsa sadece en yüksek puanlısı saklanır)
     const idRecords = getIdRecords();
     const existing = idRecords[pId];
     if (!existing || finalScore > existing.bestScore) {
@@ -899,7 +1009,7 @@
     if (modal) modal.classList.add('hidden');
   }
 
-  // --- 15. LİDERLİK TABLOSU MOTORU (ŞİFRELİ / MASKELİ GİZLİLİK) ---
+  // --- 17. LİDERLİK TABLOSU (GİZLİLİK MASKELEME KURALI: m*****u) ---
   function getLeaderboard() {
     try {
       const raw = localStorage.getItem(STORAGE_LEADERBOARD);
@@ -909,7 +1019,7 @@
     return [
       { user: 'm*****u', score: 3850, time: 245, puzzleId: 6041, diff: 'expert', date: '2026-09-29' },
       { user: 'a*****r', score: 3420, time: 290, puzzleId: 4120, diff: 'hard', date: '2026-09-30' },
-      { user: 'k*****a', score: 3100, time: 315, puzzleId: 20260930, diff: 'daily', date: '2026-09-30' },
+      { user: 'k*****a', score: 3100, time: 315, puzzleId: 20261001, diff: 'daily', date: '2026-10-01' },
       { user: 's*****r', score: 2850, time: 180, puzzleId: 1042, diff: 'medium', date: '2026-09-28' },
       { user: 'e*****n', score: 2450, time: 145, puzzleId: 325, diff: 'easy', date: '2026-09-30' },
       { user: 'b*****t', score: 2100, time: 390, puzzleId: 8841, diff: 'hard', date: '2026-09-27' },
@@ -919,7 +1029,6 @@
 
   function recordToLeaderboard(puzzleId, diff, timeSec, score) {
     const list = getLeaderboard();
-    // Kullanıcı adını m*****u kuralıyla kaydet
     const maskedUser = maskUsername('Melih Karasu');
     const entry = {
       user: maskedUser,
@@ -968,8 +1077,13 @@
       const isSelf = item.isSelf || item.user === 'm*****u';
       const selfClass = isSelf ? 'bg-amber-50/70 font-bold border-l-2 border-amber-500' : 'hover:bg-mistral-cream/50';
 
-      // İsimler garanti maskeli: m*****u
-      const safeMaskedUser = maskUsername(item.user);
+      // İsimler garanti maskeli: m*****u ve XSS korumalı escapeHtml
+      const safeMaskedUser = escapeHtml(maskUsername(item.user));
+      const safeDiffName = escapeHtml((DIFFICULTY_CONFIG[item.diff] || {}).name || item.diff);
+      const safePuzzleId = escapeHtml(item.puzzleId);
+      const safeScore = escapeHtml(Number(item.score).toLocaleString('tr-TR'));
+      const safeTime = escapeHtml(formatTime(item.time));
+      const safeDate = escapeHtml(item.date);
 
       return `
         <div class="py-2.5 px-3 flex items-center justify-between ${selfClass} transition">
@@ -980,12 +1094,12 @@
                 <span>${safeMaskedUser}</span>
                 ${isSelf ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-sans">Sen</span>' : ''}
               </div>
-              <div class="text-[10px] text-mistral-stone font-sans">ID: #${item.puzzleId} • ${(DIFFICULTY_CONFIG[item.diff] || {}).name || item.diff}</div>
+              <div class="text-[10px] text-mistral-stone font-sans">ID: #${safePuzzleId} • ${safeDiffName}</div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-mistral-orange font-bold text-xs">${item.score.toLocaleString('tr-TR')} Puan</div>
-            <div class="text-[10px] text-mistral-slate">${formatTime(item.time)} • ${item.date}</div>
+            <div class="text-mistral-orange font-bold text-xs">${safeScore} Puan</div>
+            <div class="text-[10px] text-mistral-slate">${safeTime} • ${safeDate}</div>
           </div>
         </div>
       `;
@@ -1017,7 +1131,7 @@
     if (modal) modal.classList.add('hidden');
   }
 
-  // --- 16. İSTATİSTİKLER (BU OYUN & GENEL TOPLAM) ---
+  // --- 18. İSTATİSTİKLER (BU OYUN & GENEL TOPLAM) ---
   function getLifetimeStats() {
     try {
       const raw = localStorage.getItem(STORAGE_LIFETIME_STATS);
@@ -1063,7 +1177,6 @@
     document.getElementById('st-best-score').innerText = stats.bestScore.toLocaleString('tr-TR');
     document.getElementById('st-best-time').innerText = stats.bestTime > 0 ? formatTime(stats.bestTime) : '-';
 
-    // Çözülen tekil ID'ler listesi
     const listEl = document.getElementById('solved-puzzles-list');
     if (listEl) {
       const records = getIdRecords();
@@ -1073,16 +1186,19 @@
       } else {
         listEl.innerHTML = keys.map(k => {
           const item = records[k];
-          const diff = (DIFFICULTY_CONFIG[item.difficulty] || {}).name || item.difficulty;
+          const diff = escapeHtml((DIFFICULTY_CONFIG[item.difficulty] || {}).name || item.difficulty);
+          const safeId = escapeHtml(item.puzzleId);
+          const safeScore = escapeHtml(Number(item.bestScore).toLocaleString('tr-TR'));
+          const safeTime = escapeHtml(formatTime(item.bestTime));
           return `
             <div class="p-2.5 flex items-center justify-between hover:bg-mistral-cream/50 transition font-mono">
               <div>
-                <span class="font-bold text-mistral-ink">#${item.puzzleId}</span>
+                <span class="font-bold text-mistral-ink">#${safeId}</span>
                 <span class="text-mistral-slate ml-1 text-[10px]">(${diff})</span>
               </div>
               <div class="text-right">
-                <span class="text-mistral-orange font-bold">${item.bestScore} Puan</span>
-                <span class="text-mistral-stone text-[10px] ml-2">⏱️ ${formatTime(item.bestTime)}</span>
+                <span class="text-mistral-orange font-bold">${safeScore} Puan</span>
+                <span class="text-mistral-stone text-[10px] ml-2">⏱️ ${safeTime}</span>
               </div>
             </div>
           `;
@@ -1099,44 +1215,20 @@
     if (modal) modal.classList.add('hidden');
   }
 
-  // --- 17. PAYLAŞ BUTONU (AYNI BULMACA LİNKİ) ---
+  // --- 19. PAYLAŞ BUTONU (AYNI BULMACA LİNKİ) ---
   function shareGameLink() {
     const url = new URL(window.location.href);
     url.searchParams.set('id', gameState.puzzleId);
     url.searchParams.set('diff', gameState.difficulty);
     const linkStr = url.toString();
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(linkStr).then(() => {
-        showToast(`✓ #${gameState.puzzleId} linki panoya kopyalandı!`);
-      }).catch(() => fallbackCopy(linkStr));
-    } else {
-      fallbackCopy(linkStr);
-    }
+    safeCopyToClipboard(linkStr, `✓ #${gameState.puzzleId} linki panoya kopyalandı!`);
   }
 
-  function fallbackCopy(text) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      document.execCommand('copy');
-      showToast(`✓ #${gameState.puzzleId} linki panoya kopyalandı!`);
-    } catch(e) {
-      showToast('Kopyalama başarısız oldu');
-    }
-    document.body.removeChild(ta);
-  }
-
-  // --- 18. KLAVYE VE ETKİLEŞİM DİNLEYİCİLERİ ---
+  // --- 20. KLAVYE VE ETKİLEŞİM DİNLEYİCİLERİ ---
   function setupDomEvents() {
     window.addEventListener('keydown', (e) => {
-      if (gameState.isCompleted) return;
+      if (gameState.isCompleted || !gameState.inGame) return;
 
-      // Modal açıkken oyun tuşlarını yutma
       const vMod = document.getElementById('victory-modal');
       const lMod = document.getElementById('leaderboard-modal');
       const sMod = document.getElementById('stats-modal');
@@ -1151,7 +1243,6 @@
         return;
       }
 
-      // Input aktifken yutma
       if (e.target && e.target.tagName === 'INPUT') return;
 
       if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
@@ -1215,7 +1306,7 @@
     });
   }
 
-  // --- 19. YARDIMCI İŞLEVLER ---
+  // --- 21. YARDIMCI İŞLEVLER ---
   function formatTime(totalSec) {
     const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
     const s = String(totalSec % 60).padStart(2, '0');
@@ -1231,12 +1322,14 @@
     toast.__tid = setTimeout(() => toast.classList.add('hidden'), 3500);
   }
 
-  // --- 20. DIŞA AKTARILAN GLOBAL KÖPRÜLER ---
-  window.changeDifficulty = changeDifficulty;
+  // --- 22. DIŞA AKTARILAN GLOBAL KÖPRÜLER ---
+  window.selectLobbyDifficulty = selectLobbyDifficulty;
+  window.startFromLobbyDifficulty = startFromLobbyDifficulty;
+  window.loadFromLobbyId = loadFromLobbyId;
   window.startDailyChallenge = startDailyChallenge;
-  window.loadCustomIdGame = loadCustomIdGame;
-  window.startNewGame = startNewGame;
   window.startNextGame = startNextGame;
+  window.returnToLobby = returnToLobby;
+  window.pauseAndOpenNewGame = pauseAndOpenNewGame;
   window.togglePauseGame = togglePauseGame;
   window.actionUndo = actionUndo;
   window.actionErase = actionErase;
@@ -1244,7 +1337,7 @@
   window.actionHint = actionHint;
   window.inputNumber = inputNumber;
   window.resumeSavedGame = resumeSavedGame;
-  window.dismissResumeBanner = dismissResumeBanner;
+  window.deleteSavedGame = deleteSavedGame;
   window.openLeaderboardModal = openLeaderboardModal;
   window.closeLeaderboardModal = closeLeaderboardModal;
   window.renderLeaderboardTab = renderLeaderboardTab;
