@@ -98,10 +98,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(8px, 1.8vw, 10px);
-  font-weight: 600;
-  color: #64748b;
+  font-size: clamp(9px, 2vw, 11px);
+  font-weight: 700;
+  color: #334155;
   line-height: 1;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+/* Seçili rakamla eşleşen aday notlarının vurgulanması */
+.sudoku-cell.highlight-note-cell {
+  background-color: #fff7ed !important;
+}
+
+.notes-cell.note-match {
+  background-color: #fa520f !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  box-shadow: 0 1px 4px rgba(250, 82, 15, 0.4);
+  transform: scale(1.08);
 }
 
 /* ==========================================================================

@@ -220,6 +220,32 @@
     updateLobbyDailyDate();
     updateLobbyDifficultyUI();
 
+    // Monorepo veritabanı senkronizasyonu (varsa yarım kalan oyunu ve istatistikleri DB'den çek)
+    if (typeof window.syncAppUserData === 'function') {
+      window.syncAppUserData('sudoku').then(() => {
+        if (!gameState.inGame) {
+          checkLobbyUnfinishedGame();
+        }
+      }).catch(() => {});
+    }
+    window.addEventListener('vibe_user_data_synced', (e) => {
+      if (e.detail && e.detail.appId === 'sudoku' && !gameState.inGame) {
+        checkLobbyUnfinishedGame();
+      }
+    });
+
+    // Sayfa kapatılırken veya sekme gizlenirken aktif oyunu anında kaydet
+    window.addEventListener('beforeunload', () => {
+      if (gameState.inGame && !gameState.isCompleted) {
+        saveActiveGame();
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && gameState.inGame && !gameState.isCompleted) {
+        saveActiveGame();
+      }
+    });
+
     // URL'de doğrudan paylaşım parametresi var mı kontrol et
     const urlParams = new URLSearchParams(window.location.search);
     const idParam = urlParams.get('id') || urlParams.get('puzzle');
@@ -233,7 +259,7 @@
       }
     }
 
-    // Sayfa doğrudan lobi görünümüyle açılır (Oyun HEMEN başlamaz)
+    // Sayfa doğrudan lobi görünümüyle açılır
     showLobbyView();
   }
 
@@ -318,8 +344,8 @@
 
   function returnToLobby() {
     // Oyunu kaydedip ana menüye döner
-    if (gameState.hasPlayerMoved || gameState.timerSec > 5) {
-      saveActiveGame();
+    if (!gameState.isCompleted) {
+      saveActiveGame(true);
     }
     showLobbyView();
     showToast('Oyun kaydedildi, ana menüye dönüldü.');
@@ -327,8 +353,8 @@
 
   function pauseAndOpenNewGame() {
     // Duraklatma ekranından yeni oyun / menüye basılınca
-    if (gameState.hasPlayerMoved || gameState.timerSec > 5) {
-      saveActiveGame();
+    if (!gameState.isCompleted) {
+      saveActiveGame(true);
     }
     showLobbyView();
     showToast('Yarım kalan oyun kaydedildi.');
@@ -369,19 +395,21 @@
 
     showGameView();
     startTimer();
-    // NOT: Yeni başlayan oyunda oyuncu henüz hamle yapmadığı için saveActiveGame() ÇAĞRILMAZ!
-    // Böylece sayfa yenilenirse boş oyun "yarım kalan oyun" olarak görünmez.
+    saveActiveGame(true);
   }
 
   // --- 10. YARIM KALAN OYUN YÖNETİMİ (TEKİL VE SON OYUN) ---
-  function saveActiveGame() {
+  function saveActiveGame(force = false) {
     if (gameState.isCompleted) {
       localStorage.removeItem(STORAGE_ACTIVE_GAME);
+      if (typeof window.saveAppUserData === 'function') {
+        window.saveAppUserData('sudoku', STORAGE_ACTIVE_GAME, null);
+      }
       return;
     }
 
-    // Yalnızca oyuncu en az bir hamle yaptıysa veya süre harcadıysa kaydet
-    if (!gameState.hasPlayerMoved && gameState.timerSec < 5) return;
+    const hasNotes = Array.isArray(gameState.notes) && gameState.notes.some(arr => Array.isArray(arr) && arr.length > 0);
+    if (!force && !gameState.hasPlayerMoved && !hasNotes && gameState.timerSec < 1) return;
 
     const payload = {
       puzzleId: gameState.puzzleId,
@@ -398,6 +426,9 @@
     };
     try {
       localStorage.setItem(STORAGE_ACTIVE_GAME, JSON.stringify(payload));
+      if (typeof window.saveAppUserData === 'function') {
+        window.saveAppUserData('sudoku', STORAGE_ACTIVE_GAME, payload);
+      }
     } catch(e) {}
   }
 
@@ -409,23 +440,21 @@
 
     try {
       const raw = localStorage.getItem(STORAGE_ACTIVE_GAME);
-      if (!raw) {
+      if (!raw || raw === 'null') {
         card.classList.add('hidden');
+        card.style.display = 'none';
         return;
       }
-      const data = JSON.parse(raw);
+      const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (!data || !data.board || data.board.length !== 81) {
         card.classList.add('hidden');
+        card.style.display = 'none';
         return;
       }
 
-      // Oyuncunun en az bir hamlesi var mı?
       const userMoves = data.board.filter((v, i) => !data.given[i] && v !== 0).length;
+      const notesCount = Array.isArray(data.notes) ? data.notes.reduce((acc, n) => acc + (Array.isArray(n) ? n.length : 0), 0) : 0;
       const totalEmpty = data.given.filter(g => !g).length;
-      if (userMoves === 0 && (data.timerSec || 0) < 5) {
-        card.classList.add('hidden');
-        return;
-      }
 
       const mm = String(Math.floor((data.timerSec || 0) / 60)).padStart(2, '0');
       const ss = String((data.timerSec || 0) % 60).padStart(2, '0');
@@ -433,10 +462,15 @@
       const pct = Math.round((userMoves / Math.max(1, totalEmpty)) * 100);
 
       if (titleEl) titleEl.innerText = `Yarım Kalan Oyununuz: #${data.puzzleId} (${diffName})`;
-      if (descEl) descEl.innerText = `Geçen Süre: ${mm}:${ss} • İlerleme: %${pct} (${userMoves}/${totalEmpty} hücre tamamlandı)`;
+      if (descEl) {
+        const noteInfo = notesCount > 0 ? ` • ${notesCount} aday not` : '';
+        descEl.innerText = `Geçen Süre: ${mm}:${ss} • İlerleme: %${pct} (${userMoves}/${totalEmpty} hücre${noteInfo})`;
+      }
       card.classList.remove('hidden');
+      card.style.display = 'flex';
     } catch(e) {
       card.classList.add('hidden');
+      card.style.display = 'none';
     }
   }
 
@@ -481,9 +515,15 @@
   function deleteSavedGame() {
     try {
       localStorage.removeItem(STORAGE_ACTIVE_GAME);
+      if (typeof window.saveAppUserData === 'function') {
+        window.saveAppUserData('sudoku', STORAGE_ACTIVE_GAME, null);
+      }
     } catch(e) {}
     const card = document.getElementById('lobby-resume-card');
-    if (card) card.classList.add('hidden');
+    if (card) {
+      card.classList.add('hidden');
+      card.style.display = 'none';
+    }
     showToast('Önceki oyun kaydı silindi.');
   }
 
@@ -597,12 +637,17 @@
       } else {
         const cellNotes = gameState.notes[i] || [];
         if (cellNotes.length > 0) {
+          if (selectedVal !== 0 && cellNotes.includes(selectedVal)) {
+            cell.classList.add('highlight-note-cell');
+          }
           const notesGrid = document.createElement('div');
           notesGrid.className = 'notes-grid';
           for (let n = 1; n <= 9; n++) {
             const noteEl = document.createElement('div');
-            noteEl.className = 'notes-cell';
-            noteEl.innerText = cellNotes.includes(n) ? n : '';
+            const hasNote = cellNotes.includes(n);
+            const isMatchedNote = hasNote && selectedVal !== 0 && n === selectedVal;
+            noteEl.className = isMatchedNote ? 'notes-cell note-match' : 'notes-cell';
+            noteEl.innerText = hasNote ? n : '';
             notesGrid.appendChild(noteEl);
           }
           cell.appendChild(notesGrid);
