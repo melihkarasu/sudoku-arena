@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/mistral-theme.css?v=20261017c">
-  <link rel="stylesheet" href="css/app.css?v=20261017c">
+  <link rel="stylesheet" href="css/app.css?v=20261017d">
 </head>
 <body class="p-3 sm:p-6 bg-[#fffdf9] text-[#1f1f1f] min-h-screen flex flex-col justify-between">
 <div class="sunset-stripe"></div>
@@ -238,13 +238,21 @@
             </div>
           </div>
 
-          <!-- 2) ARAÇ ÇUBUĞU: GERİ AL - SİL - NOT AL - İPUCU (Tahta ile Tuş Takımı Arasında, Metinsiz Sadece Sembol) -->
+          <!-- 2) ARAÇ ÇUBUĞU: GERİ AL - İLERİ AL - SİL - NOT AL - İPUCU (Tahta ile Tuş Takımı Arasında, Metinsiz Sadece Sembol) -->
           <div class="sudoku-action-dock" role="toolbar" aria-label="Oyun Araçları">
             <!-- Geri Al (Undo) -->
-            <button type="button" onclick="actionUndo()" class="sudoku-tool-btn" aria-label="Geri Al" title="Geri Al (Ctrl+Z)">
+            <button type="button" onclick="actionUndo()" id="btn-undo" class="sudoku-tool-btn" aria-label="Geri Al" title="Geri Al (Ctrl+Z)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 14 4 9l5-5"/>
                 <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+              </svg>
+            </button>
+
+            <!-- İleri Al (Redo) -->
+            <button type="button" onclick="actionRedo()" id="btn-redo" class="sudoku-tool-btn opacity-40" aria-label="İleri Al" title="Geri Alınan Hamleyi İleri Al (Ctrl+Y / Ctrl+Shift+Z)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 14 5-5-5-5"/>
+                <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/>
               </svg>
             </button>
 
@@ -592,6 +600,6 @@
 
 </main>
 <div class="sunset-stripe mt-auto"></div>
-<script src="js/app.js?v=20261017c"></script>
+<script src="js/app.js?v=20261017d"></script>
 </body>
 </html>

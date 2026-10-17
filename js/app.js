@@ -198,6 +198,7 @@
     hintsRemaining: 3,
     hintsUsed: 0,
     history: [],
+    redoStack: [],
     hasPlayerMoved: false,
     inGame: false // Sayfa açılışında oyun başlamaz; lobi aktiftir
   };
@@ -375,6 +376,7 @@
     gameState.hintsRemaining = 3;
     gameState.hintsUsed = 0;
     gameState.history = [];
+    gameState.redoStack = [];
     gameState.hasPlayerMoved = false;
 
     showToast(`Bulmaca #${id} yükleniyor...`);
@@ -422,6 +424,8 @@
       mistakes: gameState.mistakes,
       hintsRemaining: gameState.hintsRemaining,
       hintsUsed: gameState.hintsUsed,
+      history: gameState.history,
+      redoStack: gameState.redoStack,
       savedAt: Date.now()
     };
     try {
@@ -495,7 +499,8 @@
       gameState.noteMode = false;
       gameState.isPaused = false;
       gameState.isCompleted = false;
-      gameState.history = [];
+      gameState.history = Array.isArray(data.history) ? data.history : [];
+      gameState.redoStack = Array.isArray(data.redoStack) ? data.redoStack : [];
       gameState.hasPlayerMoved = true;
 
       updateBadges();
@@ -706,6 +711,8 @@
 
     // Aday Not Modu Açık ise
     if (gameState.noteMode) {
+      const prevVal = gameState.board[idx];
+      const prevAllNotes = gameState.notes.map(n => (n || []).slice());
       const cellNotes = (gameState.notes[idx] || []).slice();
       const nIdx = cellNotes.indexOf(num);
       if (nIdx >= 0) {
@@ -714,15 +721,20 @@
         cellNotes.push(num);
         cellNotes.sort((a,b) => a - b);
       }
-      gameState.history.push({
-        idx,
-        prevVal: gameState.board[idx],
-        newVal: 0,
-        prevNotes: gameState.notes[idx],
-        newNotes: cellNotes
-      });
       gameState.notes[idx] = cellNotes;
       gameState.board[idx] = 0;
+      const newAllNotes = gameState.notes.map(n => (n || []).slice());
+      gameState.history.push({
+        idx,
+        prevVal,
+        newVal: 0,
+        prevNotes: prevAllNotes[idx],
+        newNotes: cellNotes.slice(),
+        allPrevNotes: prevAllNotes,
+        allNewNotes: newAllNotes
+      });
+      gameState.redoStack = [];
+      updateUndoRedoUI();
       renderBoard();
       saveActiveGame();
       return;
@@ -730,7 +742,8 @@
 
     // Normal Sayı Girişi
     const prevVal = gameState.board[idx];
-    const prevNotes = (gameState.notes[idx] || []).slice();
+    const prevAllNotes = gameState.notes.map(n => (n || []).slice());
+    const prevNotes = prevAllNotes[idx];
 
     if (prevVal === num) {
       actionErase();
@@ -747,19 +760,24 @@
       }
     }
 
-    gameState.history.push({
-      idx,
-      prevVal,
-      newVal: num,
-      prevNotes,
-      newNotes: []
-    });
-
     gameState.board[idx] = num;
     gameState.notes[idx] = [];
 
     // Akıllı Not Temizliği: Aynı satır, sütun ve kutudaki diğer hücrelerden bu sayıyı sil
     cleanRelatedNotes(idx, num);
+
+    const newAllNotes = gameState.notes.map(n => (n || []).slice());
+    gameState.history.push({
+      idx,
+      prevVal,
+      newVal: num,
+      prevNotes,
+      newNotes: [],
+      allPrevNotes: prevAllNotes,
+      allNewNotes: newAllNotes
+    });
+    gameState.redoStack = [];
+    updateUndoRedoUI();
 
     renderBoard();
     updateLiveScore();
@@ -789,7 +807,18 @@
     }
   }
 
-  // --- 14. EYLEMLER: GERİ AL, SİL, NOT MODU, İPUCU ---
+  // --- 14. EYLEMLER: GERİ AL, İLERİ AL, SİL, NOT MODU, İPUCU ---
+  function updateUndoRedoUI() {
+    const undoBtn = document.getElementById('btn-undo');
+    const redoBtn = document.getElementById('btn-redo');
+    if (undoBtn) {
+      undoBtn.classList.toggle('opacity-40', (gameState.history || []).length === 0);
+    }
+    if (redoBtn) {
+      redoBtn.classList.toggle('opacity-40', (gameState.redoStack || []).length === 0);
+    }
+  }
+
   function actionUndo() {
     if (gameState.isPaused || gameState.isCompleted) return;
     if (gameState.history.length === 0) {
@@ -797,13 +826,42 @@
       return;
     }
     const last = gameState.history.pop();
+    gameState.redoStack.push(last);
     gameState.board[last.idx] = last.prevVal;
-    gameState.notes[last.idx] = last.prevNotes;
+    if (Array.isArray(last.allPrevNotes) && last.allPrevNotes.length === 81) {
+      gameState.notes = last.allPrevNotes.map(n => (n || []).slice());
+    } else {
+      gameState.notes[last.idx] = (last.prevNotes || []).slice();
+    }
     gameState.selectedCell = last.idx;
+    updateUndoRedoUI();
     renderBoard();
     updateLiveScore();
     updateNumpadBadges();
     saveActiveGame();
+  }
+
+  function actionRedo() {
+    if (gameState.isPaused || gameState.isCompleted) return;
+    if (!gameState.redoStack || gameState.redoStack.length === 0) {
+      showToast('İleri alınacak hamle yok');
+      return;
+    }
+    const next = gameState.redoStack.pop();
+    gameState.history.push(next);
+    gameState.board[next.idx] = next.newVal;
+    if (Array.isArray(next.allNewNotes) && next.allNewNotes.length === 81) {
+      gameState.notes = next.allNewNotes.map(n => (n || []).slice());
+    } else {
+      gameState.notes[next.idx] = (next.newNotes || []).slice();
+    }
+    gameState.selectedCell = next.idx;
+    updateUndoRedoUI();
+    renderBoard();
+    updateLiveScore();
+    updateNumpadBadges();
+    saveActiveGame();
+    checkVictory();
   }
 
   function actionErase() {
@@ -815,16 +873,24 @@
     if (gameState.board[idx] === 0 && (!gameState.notes[idx] || gameState.notes[idx].length === 0)) return;
 
     gameState.hasPlayerMoved = true;
-    gameState.history.push({
-      idx,
-      prevVal: gameState.board[idx],
-      newVal: 0,
-      prevNotes: gameState.notes[idx] || [],
-      newNotes: []
-    });
-
+    const prevVal = gameState.board[idx];
+    const prevAllNotes = gameState.notes.map(n => (n || []).slice());
     gameState.board[idx] = 0;
     gameState.notes[idx] = [];
+    const newAllNotes = gameState.notes.map(n => (n || []).slice());
+
+    gameState.history.push({
+      idx,
+      prevVal,
+      newVal: 0,
+      prevNotes: prevAllNotes[idx],
+      newNotes: [],
+      allPrevNotes: prevAllNotes,
+      allNewNotes: newAllNotes
+    });
+    gameState.redoStack = [];
+    updateUndoRedoUI();
+
     renderBoard();
     updateLiveScore();
     updateNumpadBadges();
@@ -866,19 +932,26 @@
     gameState.hintsRemaining--;
     gameState.hintsUsed++;
     const correctVal = gameState.solution[target];
-
-    gameState.history.push({
-      idx: target,
-      prevVal: gameState.board[target],
-      newVal: correctVal,
-      prevNotes: gameState.notes[target] || [],
-      newNotes: []
-    });
+    const prevVal = gameState.board[target];
+    const prevAllNotes = gameState.notes.map(n => (n || []).slice());
 
     gameState.board[target] = correctVal;
     gameState.notes[target] = [];
     gameState.selectedCell = target;
     cleanRelatedNotes(target, correctVal);
+    const newAllNotes = gameState.notes.map(n => (n || []).slice());
+
+    gameState.history.push({
+      idx: target,
+      prevVal,
+      newVal: correctVal,
+      prevNotes: prevAllNotes[target],
+      newNotes: [],
+      allPrevNotes: prevAllNotes,
+      allNewNotes: newAllNotes
+    });
+    gameState.redoStack = [];
+    updateUndoRedoUI();
 
     updateBadges();
     renderBoard();
@@ -965,6 +1038,7 @@
     if (dBadge) dBadge.innerText = cfg.name;
     if (mCounter) mCounter.innerText = `${gameState.mistakes}/3`;
     if (noteBtn) noteBtn.classList.toggle('is-active', Boolean(gameState.noteMode));
+    updateUndoRedoUI();
 
     // İpucu sayacı (metinsiz köşe rozeti) ve pasifleşme
     if (hLabel) {
@@ -1366,8 +1440,15 @@
         return;
       }
 
-      // Geri Al
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+      // İleri Al (Ctrl+Y veya Ctrl+Shift+Z)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z')))) {
+        e.preventDefault();
+        actionRedo();
+        return;
+      }
+
+      // Geri Al (Ctrl+Z)
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
         e.preventDefault();
         actionUndo();
         return;
@@ -1431,6 +1512,7 @@
   window.pauseAndOpenNewGame = pauseAndOpenNewGame;
   window.togglePauseGame = togglePauseGame;
   window.actionUndo = actionUndo;
+  window.actionRedo = actionRedo;
   window.actionErase = actionErase;
   window.actionToggleNotes = actionToggleNotes;
   window.actionHint = actionHint;
