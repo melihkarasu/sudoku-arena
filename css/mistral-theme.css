@@ -1,8 +1,43 @@
-/* Mistral AI Base Typography & Surface - VibeCodedApps (DESIGN.md) */
+/* =============================================================
+   VibeCodedApps — Global Mistral AI Design System & Modern UI
+   Mistral Warm Palette • Vector SVG UI • Mobile-First Responsive
+============================================================= */
+
+:root {
+  --vibe-ink: #0F172A;
+  --vibe-ink-deep: #1F1F1F;
+  --vibe-slate: #475569;
+  --vibe-stone: #64748B;
+  --vibe-muted: #94A3B8;
+  --vibe-hairline: #E2E8F0;
+  --vibe-hairline-strong: #CBD5E1;
+  --vibe-canvas: #FFFDF9;
+  --vibe-surface: #FFFFFF;
+  --vibe-cream: #FFF8E0;
+  --vibe-cream-soft: #FFFAEB;
+  --vibe-beige-border: #E6D5A8;
+  --vibe-orange: #FA520F;
+  --vibe-orange-hover: #E04406;
+  --vibe-orange-deep: #CC3A05;
+  --vibe-amber: #F59E0B;
+  --vibe-emerald: #10B981;
+  --vibe-rose: #F43F5E;
+  --vibe-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --vibe-shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+  --vibe-shadow-md: 0 10px 28px -6px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --vibe-shadow-orange: 0 6px 20px -3px rgba(250, 82, 15, 0.32), 0 2px 6px -1px rgba(250, 82, 15, 0.18);
+}
+
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: #fffdf9;
-  color: #1f1f1f;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background-color: #FFFDF9;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(250, 82, 15, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: #1F1F1F;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, .font-editorial {
@@ -12,8 +47,384 @@ h1, h2, h3, .font-editorial {
 /* Mistral Signature Sunset Stripe Band */
 .sunset-stripe {
   background: linear-gradient(90deg, #fa520f 0%, #ff8105 25%, #ffa110 50%, #ffd06a 75%, #fff8e0 100%);
-  height: 6px;
+  height: 4px;
   width: 100%;
+}
+
+/* Premium Obsidian MK Brand Emblem */
+.mk-brand-emblem {
+  width: 2.625rem;
+  height: 2.625rem;
+  border-radius: 0.75rem !important;
+  background: linear-gradient(145deg, #1E2028 0%, #0D0F14 55%, #07080B 100%) !important;
+  border: 1px solid #2E323E !important;
+  box-shadow:
+    0 6px 16px -3px rgba(10, 12, 18, 0.38),
+    0 2px 4px -1px rgba(10, 12, 18, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(250, 82, 15, 0.25) !important;
+  color: #FFFFFF !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mk-brand-emblem::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+a:hover .mk-brand-emblem,
+.mk-brand-emblem:hover {
+  border-color: rgba(250, 82, 15, 0.75) !important;
+  box-shadow:
+    0 8px 20px -3px rgba(250, 82, 15, 0.28),
+    0 3px 6px -1px rgba(10, 12, 18, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.mk-brand-emblem-sm {
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 0.625rem !important;
+}
+
+/* =============================================================
+   MODERN VİTRİN & GLOBAL BİLEŞEN SİSTEMİ
+============================================================= */
+
+/* 1. Modern Buton Sistemi (.vibe-btn) */
+.vibe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  padding: 0.5625rem 1rem;
+  border-radius: 0.75rem !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.vibe-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+.vibe-btn svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.vibe-btn-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 0.625rem !important;
+}
+
+.vibe-btn-xs {
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.6875rem;
+  border-radius: 0.5rem !important;
+}
+
+.vibe-btn-primary {
+  background: linear-gradient(135deg, #FA520F 0%, #EA580C 55%, #D97706 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(204, 58, 5, 0.3) !important;
+  box-shadow: var(--vibe-shadow-orange), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+.vibe-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #E04406 0%, #C2410C 60%, #B45309 100%) !important;
+  box-shadow: 0 8px 24px -3px rgba(250, 82, 15, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-1px);
+  color: #FFFFFF !important;
+}
+
+.vibe-btn-secondary {
+  background-color: #FFFFFF !important;
+  color: #1F1F1F !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: var(--vibe-shadow-xs) !important;
+}
+
+.vibe-btn-secondary:hover:not(:disabled) {
+  background-color: #F8FAFC !important;
+  border-color: #94A3B8 !important;
+  color: #0F172A !important;
+}
+
+.vibe-btn-dark {
+  background-color: #0F172A !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1E293B !important;
+  box-shadow: var(--vibe-shadow-xs) !important;
+}
+
+.vibe-btn-dark:hover:not(:disabled) {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+}
+
+.vibe-btn-amber {
+  background: linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+  color: #78350F !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 700 !important;
+}
+
+.vibe-btn-amber:hover:not(:disabled) {
+  background: linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%) !important;
+  border-color: #F59E0B !important;
+}
+
+/* 2. Vitrin Hero & Omni-Search Komuta Kartı */
+.vibe-hero-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(250, 82, 15, 0.08) 0%, rgba(245, 158, 11, 0.04) 40%, transparent 70%),
+    radial-gradient(circle at 0% 100%, rgba(255, 248, 224, 0.7) 0%, transparent 60%),
+    #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1.5rem !important;
+  box-shadow: var(--vibe-shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.vibe-omni-dock {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem !important;
+  padding: 0.625rem;
+  transition: all 0.2s ease;
+}
+
+.vibe-omni-dock:focus-within {
+  background-color: #FFFFFF;
+  border-color: rgba(250, 82, 15, 0.45);
+  box-shadow: 0 8px 24px -6px rgba(250, 82, 15, 0.14);
+}
+
+/* 3. Yatay Kaydırılabilir Kategori Filtre Çubuğu */
+.vibe-cat-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0.25rem 0.125rem;
+}
+
+.vibe-cat-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.vibe-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.875rem;
+  border-radius: 9999px !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569 !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: var(--vibe-shadow-xs);
+  transition: all 0.16s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.vibe-cat-pill svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: #64748B;
+}
+
+.vibe-cat-pill:hover {
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+  background-color: #F8FAFC !important;
+}
+
+.vibe-cat-pill.is-active {
+  background: linear-gradient(135deg, #FA520F 0%, #EA580C 100%) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(204, 58, 5, 0.3) !important;
+  box-shadow: 0 3px 10px -1px rgba(250, 82, 15, 0.3) !important;
+}
+
+.vibe-cat-pill.is-active svg {
+  color: #FFFFFF !important;
+}
+
+/* 4. Kategori Akordion & Bento Uygulama Kartları */
+.vibe-accordion-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 1.25rem !important;
+  box-shadow: var(--vibe-shadow-sm);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vibe-accordion-card:hover {
+  border-color: #CBD5E1 !important;
+}
+
+.vibe-cat-badge {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem !important;
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
+  border: 1px solid #FED7AA !important;
+  color: #FA520F !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--vibe-shadow-xs);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.vibe-cat-badge svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: #FA520F;
+}
+
+.vibe-app-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 1rem !important;
+  padding: 1.25rem;
+  box-shadow: var(--vibe-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.vibe-app-card:hover {
+  border-color: rgba(250, 82, 15, 0.45) !important;
+  box-shadow: 0 10px 25px -5px rgba(250, 82, 15, 0.1), 0 4px 10px -2px rgba(15, 23, 42, 0.05) !important;
+  transform: translateY(-2px);
+}
+
+.vibe-app-icon {
+  width: 2.625rem;
+  height: 2.625rem;
+  border-radius: 0.75rem !important;
+  background-color: #FFF7ED !important;
+  border: 1px solid #FFEDD5 !important;
+  color: #FA520F !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.vibe-app-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke: #FA520F;
+}
+
+.vibe-app-card:hover .vibe-app-icon {
+  background: linear-gradient(135deg, #FA520F 0%, #EA580C 100%) !important;
+  border-color: #FA520F !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 10px -2px rgba(250, 82, 15, 0.35);
+}
+
+.vibe-app-card:hover .vibe-app-icon svg {
+  stroke: #FFFFFF !important;
+}
+
+.vibe-fav-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem !important;
+  border: 1px solid #E2E8F0 !important;
+  background-color: #F8FAFC !important;
+  color: #94A3B8 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.vibe-fav-btn:hover {
+  background-color: #FFFBEB !important;
+  border-color: #FCD34D !important;
+  color: #F59E0B !important;
+}
+
+.vibe-fav-btn.is-favorited {
+  background-color: #FFFBEB !important;
+  border-color: #F59E0B !important;
+  color: #F59E0B !important;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.18);
+}
+
+.vibe-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5625rem 0.875rem;
+  margin-top: 1rem;
+  border-radius: 0.625rem !important;
+  background-color: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  font-size: 0.78125rem;
+  font-weight: 700;
+  color: #0F172A !important;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.vibe-app-card:hover .vibe-card-cta {
+  background-color: #FFF7ED;
+  border-color: #FED7AA;
+  color: #FA520F !important;
+}
+
+.vibe-card-cta svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  transition: transform 0.18s ease;
+  color: #64748B;
+}
+
+.vibe-app-card:hover .vibe-card-cta svg {
+  transform: translateX(3px);
+  color: #FA520F;
 }
 
 /* MISTRAL AI GLOBAL SYSTEM OVERRIDES (Tüm alt sayfalar ve bileşenler için tam uyum) */
@@ -109,21 +520,84 @@ input:not([type="checkbox"]):not([type="radio"]), select, textarea {
 input:focus, select:focus, textarea:focus {
   border-color: #fa520f !important;
   outline: none !important;
-  box-shadow: 0 0 0 1px #fa520f !important;
+  box-shadow: 0 0 0 3px rgba(250, 82, 15, 0.14) !important;
 }
 
 /* 8. Birincil Eylem Butonları: Mistral Orange (#fa520f) */
-.bg-indigo-600, .bg-indigo-500, .bg-teal-600, .bg-teal-500, .bg-emerald-600, .bg-emerald-500 {
-  background-color: #fa520f !important;
-  color: #ffffff !important;
+.bg-indigo-600, .bg-indigo-500, .bg-teal-600, .bg-teal-500, .bg-emerald-600, .bg-emerald-500,
+button[class*="from-cyan-"], button[class*="from-blue-"], button[class*="from-emerald-"],
+button[class*="from-indigo-"], button[class*="from-purple-"], button[class*="from-amber-"],
+button[class*="from-orange-"], button[class*="from-rose-"], button[class*="from-pink-"],
+button[class*="from-teal-"], button[class*="from-violet-"] {
+  background: linear-gradient(135deg, #FA520F 0%, #EA580C 55%, #D97706 100%) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(204, 58, 5, 0.3) !important;
+  box-shadow: var(--vibe-shadow-orange), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  border-radius: 0.75rem !important;
+  font-weight: 700 !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .hover\:bg-indigo-500:hover, .hover\:bg-teal-500:hover, .hover\:bg-emerald-500:hover,
-.hover\:bg-indigo-600:hover, .hover\:bg-teal-600:hover, .hover\:bg-emerald-600:hover {
-  background-color: #cc3a05 !important;
+.hover\:bg-indigo-600:hover, .hover\:bg-teal-600:hover, .hover\:bg-emerald-600:hover,
+button[class*="from-"]:hover:not(:disabled) {
+  background: linear-gradient(135deg, #E04406 0%, #C2410C 60%, #B45309 100%) !important;
+  transform: translateY(-1px);
 }
 
-.text-teal-400, .text-indigo-400, .text-emerald-400 {
+/* 10. Evrensel Mikro Uygulama Başlık Kartı (.vibe-page-header) & Panel Stilleri */
+.vibe-page-header {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(250, 82, 15, 0.06) 0%, rgba(245, 158, 11, 0.03) 45%, transparent 70%),
+    #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 1.25rem !important;
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--vibe-shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.vibe-header-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.875rem !important;
+  background: linear-gradient(135deg, #FA520F 0%, #EA580C 60%, #D97706 100%) !important;
+  color: #FFFFFF !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px -2px rgba(250, 82, 15, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+.vibe-header-icon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+  stroke: #FFFFFF !important;
+}
+
+.vibe-panel-card,
+main .rounded-3xl.bg-white,
+main .rounded-2xl.bg-white {
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 1.25rem !important;
+  box-shadow: var(--vibe-shadow-sm) !important;
+}
+
+main input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+main select,
+main textarea {
+  border-radius: 0.75rem !important;
+  border: 1px solid #CBD5E1 !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+main button {
+  border-radius: 0.75rem;
+  transition: all 0.16s ease;
+}
+
+.text-teal-400, .text-indigo-400, .text-emerald-400, .text-cyan-400 {
   color: #fa520f !important;
 }
 
@@ -135,15 +609,16 @@ pre, code:not(.inline-code) {
   font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* ===== Standalone Contrast Repairs (dark-theme leftovers not covered above) ===== */
-.text-white.font-black { color: #1c1917 !important; }
-.text-amber-300, .text-amber-400 { color: #b45309 !important; }
-.text-emerald-300 { color: #047857 !important; }
-.text-teal-300 { color: #0f766e !important; }
-.text-purple-300, .text-purple-400 { color: #7e22ce !important; }
-.text-rose-300 { color: #be123c !important; }
-.text-blue-300, .text-blue-400 { color: #1d4ed8 !important; }
-.hover\:text-white:hover { color: #fa520f !important; }
-.holiday-row:hover { background-color: #f5f5f4 !important; }
-.divide-slate-700\/60 > :not([hidden]) ~ :not([hidden]),
-.divide-slate-700 > :not([hidden]) ~ :not([hidden]) { border-color: #e7e5e4 !important; }
+/* ===== Yellow contrast repair (dark-theme leftovers, kultur-arena) ===== */
+.text-yellow-300 { color: #a16207 !important; }
+.text-yellow-400 { color: #854d0e !important; }
+
+@media (max-width: 639px) {
+  .vibe-hero-card {
+    border-radius: 1.25rem !important;
+    padding: 1.25rem !important;
+  }
+  .vibe-app-card {
+    padding: 1rem;
+  }
+}
