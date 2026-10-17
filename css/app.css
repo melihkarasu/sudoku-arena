@@ -1,4 +1,4 @@
-/* Sudoku Arena - Custom Board & Cell Styles */
+/* Sudoku Arena - Custom Board, Action Dock & 9-Level Segmented Numpad Styles */
 
 .sudoku-board {
   display: grid;
@@ -6,12 +6,13 @@
   width: 100%;
   max-width: 480px;
   aspect-ratio: 1 / 1;
-  border: 3px solid #1f1f1f;
-  border-radius: 12px;
+  border: 2.5px solid #0F172A;
+  border-radius: 14px;
   overflow: hidden;
   background-color: #ffffff;
   user-select: none;
   touch-action: manipulation;
+  box-shadow: 0 10px 28px -6px rgba(15, 23, 42, 0.1), 0 2px 6px -1px rgba(15, 23, 42, 0.05);
 }
 
 .sudoku-cell {
@@ -22,22 +23,22 @@
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: clamp(18px, 4vw, 24px);
-  border-right: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 /* 3x3 Block Thicker Dividers */
 .sudoku-cell:nth-child(3n) {
-  border-right: 2px solid #1f1f1f;
+  border-right: 2px solid #0F172A;
 }
 .sudoku-cell:nth-child(9n) {
   border-right: none;
 }
 .sudoku-cell:nth-child(n+19):nth-child(-n+27),
 .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
-  border-bottom: 2px solid #1f1f1f;
+  border-bottom: 2px solid #0F172A;
 }
 .sudoku-cell:nth-child(n+73):nth-child(-n+81) {
   border-bottom: none;
@@ -45,26 +46,26 @@
 
 /* Cell States */
 .sudoku-cell.given {
-  color: #1f1f1f;
-  background-color: #fafaf9;
+  color: #0F172A;
+  background-color: #f8fafc;
 }
 
 .sudoku-cell.user-filled {
-  color: #4f46e5; /* Indigo accent for player numbers */
+  color: #FA520F;
   font-weight: 800;
 }
 
 .sudoku-cell.highlight-cross {
-  background-color: #fff8e0 !important; /* Soft warm cream crosshair */
+  background-color: #fff8e0 !important;
 }
 
 .sudoku-cell.highlight-same {
-  background-color: #fed7aa !important; /* Soft orange match */
+  background-color: #fed7aa !important;
   color: #9a3412 !important;
 }
 
 .sudoku-cell.selected {
-  background-color: #ffedd5 !important; /* Warm peach selected */
+  background-color: #ffedd5 !important;
   outline: 2px solid #fa520f;
   outline-offset: -2px;
   z-index: 2;
@@ -99,13 +100,239 @@
   justify-content: center;
   font-size: clamp(8px, 1.8vw, 10px);
   font-weight: 600;
-  color: #78716c;
+  color: #64748b;
   line-height: 1;
 }
 
-/* Numpad Remaining Badge */
-.num-key-badge {
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  opacity: 0.6;
+/* ==========================================================================
+   1. METİNSİZ SEMBOL ARAÇ ÇUBUĞU (TAHTA İLE TUŞ TAKIMI ARASI)
+   ========================================================================== */
+.sudoku-action-dock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 480px;
 }
+
+.sudoku-tool-btn {
+  position: relative;
+  height: 3.125rem;
+  border-radius: 0.875rem !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  color: #0F172A !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.05);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.sudoku-tool-btn svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke-width: 2;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.sudoku-tool-btn:hover:not(:disabled) {
+  border-color: #fa520f !important;
+  background-color: #fff7ed !important;
+  color: #fa520f !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -2px rgba(250, 82, 15, 0.16);
+}
+
+.sudoku-tool-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+.sudoku-tool-btn.is-active {
+  background: linear-gradient(135deg, #FA520F 0%, #EA580C 100%) !important;
+  border-color: #CC3A05 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 16px -3px rgba(250, 82, 15, 0.38) !important;
+}
+
+.sudoku-tool-btn.is-active svg {
+  stroke: #FFFFFF !important;
+}
+
+.sudoku-tool-dot {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.45rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background-color: #cbd5e1;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.sudoku-tool-btn.is-active .sudoku-tool-dot {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.sudoku-hint-pill {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.35rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #fa520f;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   2. 9 SEVİYELİ ARKA PLANLI RAKAM TUŞ TAKIMI (1 - 9)
+   ========================================================================== */
+.sudoku-numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+@media (min-width: 640px) {
+  .sudoku-numpad-grid {
+    gap: 0.5rem;
+  }
+}
+
+.sudoku-num-btn {
+  position: relative;
+  height: 3.625rem;
+  border-radius: 0.875rem !important;
+  border: 1.5px solid #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0 !important;
+  box-shadow: 0 2px 5px -1px rgba(15, 23, 42, 0.06);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.sudoku-num-btn:hover:not(.is-depleted) {
+  border-color: #fa520f !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px -3px rgba(250, 82, 15, 0.22);
+}
+
+.sudoku-num-btn:active:not(.is-depleted) {
+  transform: translateY(0) scale(0.97);
+}
+
+.sudoku-num-btn.is-depleted {
+  opacity: 0.32;
+  border-color: #e2e8f0 !important;
+  cursor: default;
+}
+
+/* 9 Seviyeli Arka Plan Izgarası (Alttan Üste 1..9 Kademe) */
+.numpad-levels-bg {
+  position: absolute;
+  inset: 2px;
+  border-radius: 0.7rem;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  gap: 1.5px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.numpad-level {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(226, 232, 240, 0.38);
+  transition: background-color 0.22s ease;
+}
+
+.numpad-level.is-filled {
+  background: linear-gradient(90deg, rgba(250, 82, 15, 0.24) 0%, rgba(245, 158, 11, 0.34) 100%);
+}
+
+.numpad-level.is-top-level {
+  background: linear-gradient(90deg, rgba(250, 82, 15, 0.45) 0%, rgba(245, 158, 11, 0.55) 100%);
+}
+
+.numpad-digit {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #0F172A !important;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.92);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Monorepo Sudoku Layout & Utility Polyfills
+   ========================================================================== */
+.max-w-\[480px\] { max-width: 480px; }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.gap-1\.5 { gap: 0.375rem; }
+.gap-2\.5 { gap: 0.625rem; }
+.mb-1\.5 { margin-bottom: 0.375rem; }
+.mb-2\.5 { margin-bottom: 0.625rem; }
+.mt-0\.5 { margin-top: 0.125rem; }
+.p-0\.5 { padding: 0.125rem; }
+.p-2\.5 { padding: 0.625rem; }
+.p-3\.5 { padding: 0.875rem; }
+.px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
+.px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+.px-3\.5 { padding-left: 0.875rem; padding-right: 0.875rem; }
+.py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+.py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+.space-y-2\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.625rem; }
+
+@media (min-width: 640px) {
+  .sm\:flex-row { flex-direction: row; }
+  .sm\:items-center { align-items: center; }
+  .sm\:inline { display: inline; }
+  .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sm\:grid-cols-9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+  .sm\:p-4 { padding: 1rem; }
+  .sm\:p-5 { padding: 1.25rem; }
+  .sm\:p-8 { padding: 2rem; }
+  .sm\:px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+}
+
+@media (min-width: 768px) {
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@keyframes scaleUp {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-scaleUp { animation: scaleUp 0.2s ease-out; }

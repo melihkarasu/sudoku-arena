@@ -18,7 +18,7 @@
     medium: { name: 'Orta',    level: 2, symbol: '●●○○', symbolColor: 'text-indigo-400', clues: 32, baseScore: 1000, parTime: 600,  mult: 3 },
     hard:   { name: 'Zor',     level: 3, symbol: '●●●○', symbolColor: 'text-orange-500', clues: 28, baseScore: 2000, parTime: 900,  mult: 4 },
     expert: { name: 'Uzman',   level: 4, symbol: '●●●●', symbolColor: 'text-red-600',    clues: 24, baseScore: 3500, parTime: 1200, mult: 5 },
-    daily:  { name: 'Günün',   level: 0, symbol: '📅',   symbolColor: 'text-amber-700',  clues: 30, baseScore: 2500, parTime: 600,  mult: 4 }
+    daily:  { name: 'Günün',   level: 0, symbol: '',   symbolColor: 'text-amber-700',  clues: 30, baseScore: 2500, parTime: 600,  mult: 4 }
   };
 
   // --- 2. GÜVENLİK PROTOKOLLERİ (XSS SANİTİZASYONU & GÜVENLİ KOPYALAMA) ---
@@ -322,7 +322,7 @@
       saveActiveGame();
     }
     showLobbyView();
-    showToast('💾 Oyun kaydedildi, ana menüye dönüldü.');
+    showToast('Oyun kaydedildi, ana menüye dönüldü.');
   }
 
   function pauseAndOpenNewGame() {
@@ -331,7 +331,7 @@
       saveActiveGame();
     }
     showLobbyView();
-    showToast('💾 Yarım kalan oyun kaydedildi.');
+    showToast('Yarım kalan oyun kaydedildi.');
   }
 
   // --- 9. OYUN BAŞLATMA (MOTOR ÇAĞRISI) ---
@@ -351,7 +351,7 @@
     gameState.history = [];
     gameState.hasPlayerMoved = false;
 
-    showToast(`🧩 Bulmaca #${id} yükleniyor...`);
+    showToast(`Bulmaca #${id} yükleniyor...`);
 
     const cfg = DIFFICULTY_CONFIG[diff];
     const generated = generateSudoku(id, cfg.clues);
@@ -472,7 +472,7 @@
 
       showGameView();
       startTimer();
-      showToast('✓ Oyun kaldığı yerden yüklendi!');
+      showToast('Oyun kaldığı yerden yüklendi!');
     } catch(e) {
       showToast('Kayıtlı oyun yüklenemedi.');
     }
@@ -484,7 +484,7 @@
     } catch(e) {}
     const card = document.getElementById('lobby-resume-card');
     if (card) card.classList.add('hidden');
-    showToast('✓ Önceki oyun kaydı silindi.');
+    showToast('Önceki oyun kaydı silindi.');
   }
 
   // --- 11. KRONOMETRE & DURAKLATMA (BLUR KATMANI) ---
@@ -518,6 +518,9 @@
     el.innerText = `${m}:${s}`;
   }
 
+  const PLAY_ICON_SVG = '<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+  const PAUSE_ICON_SVG = '<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+
   function togglePauseGame() {
     if (gameState.isCompleted || !gameState.inGame) return;
     gameState.isPaused = !gameState.isPaused;
@@ -525,10 +528,10 @@
     const btn = document.getElementById('btn-pause-toggle');
     if (gameState.isPaused) {
       if (overlay) overlay.classList.remove('hidden');
-      if (btn) btn.innerText = '▶️';
+      if (btn) btn.innerHTML = PLAY_ICON_SVG;
     } else {
       if (overlay) overlay.classList.add('hidden');
-      if (btn) btn.innerText = '⏸️';
+      if (btn) btn.innerHTML = PAUSE_ICON_SVG;
     }
   }
 
@@ -536,7 +539,7 @@
     const overlay = document.getElementById('pause-overlay');
     const btn = document.getElementById('btn-pause-toggle');
     if (overlay) overlay.classList.add('hidden');
-    if (btn) btn.innerText = '⏸️';
+    if (btn) btn.innerHTML = PAUSE_ICON_SVG;
     gameState.isPaused = false;
   }
 
@@ -693,9 +696,9 @@
     if (num !== gameState.solution[idx]) {
       gameState.mistakes++;
       updateBadges();
-      showToast(`❌ Hatalı rakam! (${gameState.mistakes}/3)`);
+      showToast(`Hatalı rakam! (${gameState.mistakes}/3)`);
       if (gameState.mistakes >= 3) {
-        showToast('⚠️ 3 hata yaptınız! Skor düşüşü uygulanıyor.');
+        showToast('3 hata yaptınız! Skor düşüşü uygulanıyor.');
       }
     }
 
@@ -786,15 +789,8 @@
   function actionToggleNotes() {
     gameState.noteMode = !gameState.noteMode;
     const btn = document.getElementById('btn-note-mode');
-    const label = document.getElementById('note-mode-label');
-    if (btn && label) {
-      if (gameState.noteMode) {
-        btn.className = 'p-3 rounded-2xl bg-violet-600 text-white font-bold text-xs transition flex flex-col items-center gap-1 shadow';
-        label.innerText = 'Not: AÇIK';
-      } else {
-        btn.className = 'p-3 rounded-2xl bg-white border border-mistral-hairline hover:bg-mistral-cream text-mistral-ink font-bold text-xs transition flex flex-col items-center gap-1 shadow-sm';
-        label.innerText = 'Not: Kapalı';
-      }
+    if (btn) {
+      btn.classList.toggle('is-active', gameState.noteMode);
     }
   }
 
@@ -844,7 +840,7 @@
     updateLiveScore();
     updateNumpadBadges();
     saveActiveGame();
-    showToast(`💡 İpucu kullanıldı (-150 puan). Kalan: ${gameState.hintsRemaining}`);
+    showToast(`İpucu kullanıldı (-150 puan). Kalan: ${gameState.hintsRemaining}`);
     checkVictory();
   }
 
@@ -895,16 +891,17 @@
       counts[gameState.board[i]]++;
     }
     for (let num = 1; num <= 9; num++) {
-      const badge = document.getElementById(`remain-${num}`);
       const btn = document.getElementById(`numpad-${num}`);
       const left = Math.max(0, 9 - counts[num]);
-      if (badge) badge.innerText = left;
       if (btn) {
-        if (left === 0) {
-          btn.classList.add('opacity-40');
-        } else {
-          btn.classList.remove('opacity-40');
-        }
+        btn.classList.toggle('is-depleted', left === 0);
+        btn.title = `${num} Rakamı (Kalan: ${left}/9)`;
+        const segs = btn.querySelectorAll('.numpad-level');
+        segs.forEach(seg => {
+          const lvl = parseInt(seg.getAttribute('data-lvl'), 10);
+          seg.classList.toggle('is-filled', lvl <= left);
+          seg.classList.toggle('is-top-level', lvl === left && left > 0);
+        });
       }
     }
   }
@@ -916,25 +913,25 @@
     const bestEl = document.getElementById('best-score-label');
     const hLabel = document.getElementById('hint-btn-label');
     const hBtn = document.getElementById('btn-hint');
+    const noteBtn = document.getElementById('btn-note-mode');
 
     const cfg = DIFFICULTY_CONFIG[gameState.difficulty] || DIFFICULTY_CONFIG.medium;
     if (pBadge) pBadge.innerText = `ID: #${gameState.puzzleId}`;
-    if (dBadge) dBadge.innerHTML = `<span class="${cfg.symbolColor} font-mono">${cfg.symbol}</span> ${cfg.name}`;
-    if (mCounter) mCounter.innerText = `❌ ${gameState.mistakes}/3`;
+    if (dBadge) dBadge.innerText = cfg.name;
+    if (mCounter) mCounter.innerText = `${gameState.mistakes}/3`;
+    if (noteBtn) noteBtn.classList.toggle('is-active', Boolean(gameState.noteMode));
 
-    // İpucu sayacı ve pasifleşme
+    // İpucu sayacı (metinsiz köşe rozeti) ve pasifleşme
     if (hLabel) {
-      hLabel.innerText = `İpucu (${gameState.hintsRemaining})`;
+      hLabel.innerText = String(gameState.hintsRemaining);
     }
     if (hBtn) {
       if (gameState.hintsRemaining <= 0) {
         hBtn.disabled = true;
         hBtn.classList.add('opacity-40', 'cursor-not-allowed');
-        hBtn.classList.remove('hover:bg-mistral-cream');
       } else {
         hBtn.disabled = false;
         hBtn.classList.remove('opacity-40', 'cursor-not-allowed');
-        hBtn.classList.add('hover:bg-mistral-cream');
       }
     }
 
@@ -1009,6 +1006,23 @@
 
     // 3) Liderlik Tablosuna Ekle (Maskelenmiş Oyuncu)
     recordToLeaderboard(pId, gameState.difficulty, timeSec, finalScore);
+
+    // 4) Monorepo Backend: Günün Sudokusu ise sunucuya bildir
+    if (gameState.difficulty === 'daily') {
+      try {
+        fetch('/api/sudoku/daily-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: pId,
+            time_seconds: timeSec,
+            score: finalScore,
+            mistakes: gameState.mistakes,
+            hints: gameState.hintsUsed
+          })
+        }).catch(() => {});
+      } catch(e) {}
+    }
   }
 
   function openVictoryModal(s) {
@@ -1056,7 +1070,7 @@
     } catch(e) {}
   }
 
-  function renderLeaderboardTab(filterType) {
+  async function renderLeaderboardTab(filterType) {
     const container = document.getElementById('leaderboard-rows-container');
     const tabAll = document.getElementById('lb-tab-all');
     const tabDaily = document.getElementById('lb-tab-daily');
@@ -1070,29 +1084,55 @@
       if (tabDaily) tabDaily.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-mistral-hairline text-mistral-slate hover:text-mistral-ink transition';
     }
 
+    // Monorepo Backend Entegrasyonu: Günün Sudokusu için backend API'sini sorgula
+    if (filterType === 'daily') {
+      container.innerHTML = '<div class="py-8 text-center text-mistral-slate font-mono">Günün liderlik tablosu yükleniyor...</div>';
+      try {
+        const dateCode = String(gameState.difficulty === 'daily' ? gameState.puzzleId : '').slice(0, 8) || new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const res = await fetch(`/api/sudoku/daily-leaderboard?date=${encodeURIComponent(dateCode)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.leaderboard)) {
+            renderLeaderboardRows(data.leaderboard, data.userRank, data.userRecord, true);
+            return;
+          }
+        }
+      } catch (apiErr) {
+        // API hatasında yerel listeye dön
+      }
+    }
+
+    // Genel Sıralama veya Yerel Geri Dönüş
     const all = getLeaderboard();
     const filtered = filterType === 'daily'
       ? all.filter(item => item.diff === 'daily')
       : all;
 
-    if (filtered.length === 0) {
+    renderLeaderboardRows(filtered, -1, null, false);
+  }
+
+  function renderLeaderboardRows(rows, userRank, userRecord, isBackendDaily) {
+    const container = document.getElementById('leaderboard-rows-container');
+    const myRankLabel = document.getElementById('my-rank-label');
+    const myRankScore = document.getElementById('my-rank-score');
+    if (!container) return;
+
+    if (!rows || rows.length === 0) {
       container.innerHTML = '<div class="py-8 text-center text-mistral-slate">Bu kategoride henüz liderlik kaydı bulunmuyor.</div>';
+      if (myRankLabel) myRankLabel.innerText = 'Senin Durumun: Henüz dereceniz yok';
+      if (myRankScore) myRankScore.innerText = '-';
       return;
     }
 
-    container.innerHTML = filtered.map((item, idx) => {
-      const rank = idx + 1;
-      const rankBadge = rank === 1 ? '🥇 1' : rank === 2 ? '🥈 2' : rank === 3 ? '🥉 3' : `#${rank}`;
+    container.innerHTML = rows.map((item, idx) => {
+      const rank = item.rank || (idx + 1);
+      const rankBadge = rank === 1 ? '#1' : rank === 2 ? '#2' : rank === 3 ? '#3' : `#${rank}`;
       const isSelf = Boolean(item.isSelf);
       const selfClass = isSelf ? 'bg-amber-50/70 font-bold border-l-2 border-amber-500' : 'hover:bg-mistral-cream/50';
 
-      // İsimler garanti maskeli: m*****u ve XSS korumalı escapeHtml
       const safeMaskedUser = escapeHtml(maskUsername(item.user));
-      const safeDiffName = escapeHtml((DIFFICULTY_CONFIG[item.diff] || {}).name || item.diff);
-      const safePuzzleId = escapeHtml(item.puzzleId);
-      const safeScore = escapeHtml(Number(item.score).toLocaleString('tr-TR'));
       const safeTime = escapeHtml(formatTime(item.time));
-      const safeDate = escapeHtml(item.date);
+      const safeScore = escapeHtml(Number(item.score).toLocaleString('tr-TR'));
 
       return `
         <div class="py-2.5 px-3 flex items-center justify-between ${selfClass} transition">
@@ -1103,28 +1143,33 @@
                 <span>${safeMaskedUser}</span>
                 ${isSelf ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-sans">Sen</span>' : ''}
               </div>
-              <div class="text-[10px] text-mistral-stone font-sans">ID: #${safePuzzleId} • ${safeDiffName}</div>
+              <div class="text-[10px] text-mistral-stone font-sans">
+                ${isBackendDaily ? 'En Hızlı Çözüm: ' + safeTime : 'ID: #' + escapeHtml(item.puzzleId || '')}
+              </div>
             </div>
           </div>
           <div class="text-right">
             <div class="text-mistral-orange font-bold text-xs">${safeScore} Puan</div>
-            <div class="text-[10px] text-mistral-slate">${safeTime} • ${safeDate}</div>
+            <div class="text-[10px] text-mistral-slate">${safeTime}</div>
           </div>
         </div>
       `;
     }).join('');
 
-    // Alt sabit sırada oyuncunun yerini göster
-    const myRankIdx = filtered.findIndex(i => i.isSelf);
-    const myRankLabel = document.getElementById('my-rank-label');
-    const myRankScore = document.getElementById('my-rank-score');
+    // Oyuncunun kendi durumunu güncelle
     if (myRankLabel && myRankScore) {
-      if (myRankIdx >= 0) {
-        myRankLabel.innerText = `Senin Durumun: #${myRankIdx + 1} • m*****u`;
-        myRankScore.innerText = `${filtered[myRankIdx].score.toLocaleString('tr-TR')} Puan`;
+      if (userRank > 0 && userRecord) {
+        myRankLabel.innerText = `Senin Durumun: #${userRank} • ${maskUsername(userRecord.user)}`;
+        myRankScore.innerText = `${formatTime(userRecord.time)} (${userRecord.score.toLocaleString('tr-TR')} Puan)`;
       } else {
-        myRankLabel.innerText = 'Senin Durumun: Henüz bu tabloda dereceniz yok';
-        myRankScore.innerText = '-';
+        const myIdx = rows.findIndex(i => i.isSelf);
+        if (myIdx >= 0) {
+          myRankLabel.innerText = `Senin Durumun: #${myIdx + 1} • m*****u`;
+          myRankScore.innerText = `${formatTime(rows[myIdx].time)} (${rows[myIdx].score.toLocaleString('tr-TR')} Puan)`;
+        } else {
+          myRankLabel.innerText = 'Senin Durumun: Henüz dereceniz yok';
+          myRankScore.innerText = '-';
+        }
       }
     }
   }
@@ -1207,7 +1252,7 @@
               </div>
               <div class="text-right">
                 <span class="text-mistral-orange font-bold">${safeScore} Puan</span>
-                <span class="text-mistral-stone text-[10px] ml-2">⏱️ ${safeTime}</span>
+                <span class="text-mistral-stone text-[10px] ml-2">${safeTime}</span>
               </div>
             </div>
           `;
@@ -1230,7 +1275,7 @@
     url.searchParams.set('id', gameState.puzzleId);
     url.searchParams.set('diff', gameState.difficulty);
     const linkStr = url.toString();
-    safeCopyToClipboard(linkStr, `✓ #${gameState.puzzleId} linki panoya kopyalandı!`);
+    safeCopyToClipboard(linkStr, `#${gameState.puzzleId} linki panoya kopyalandı!`);
   }
 
   // --- 20. KLAVYE VE ETKİLEŞİM DİNLEYİCİLERİ ---
